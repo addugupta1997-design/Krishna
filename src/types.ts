@@ -87,9 +87,6 @@ export interface WebsiteSettings {
 
   // Editable site imagery (replace via Store Settings → Site images)
   logoImage?: string;
-  faviconImage?: string;
-  ogImage?: string;
-  hangingLanternImage?: string;
   collectionsHeroImage?: string;
   storyPageHeroImage?: string;
   storyPageHeroVideo?: string;

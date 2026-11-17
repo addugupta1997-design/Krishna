@@ -39,9 +39,6 @@ const defaultSettings: WebsiteSettings = {
   instagramUrl: 'https://instagram.com/krishnatracer',
   privacyPolicy: DEFAULT_PRIVACY_POLICY,
   logoImage: '/assets/images/logo_emblem.png',
-  faviconImage: '',
-  ogImage: '/assets/images/hero_photography.jpg',
-  hangingLanternImage: '/assets/images/hanging-lantern.svg',
   collectionsHeroImage: '/assets/images/collections_hero_clean.jpg',
   storyPageHeroImage: '/assets/images/hero_photography.jpg',
   storyCelebrationsImage: '/assets/images/story_celebrations.jpg',
@@ -293,24 +290,6 @@ export default function App() {
     checkAuth();
   }, [loadPublicData, checkAuth]);
 
-  // Keep social-share and favicon tags in sync with the admin-controlled media.
-  useEffect(() => {
-    const setMeta = (selector: string, content: string) => {
-      const element = document.querySelector<HTMLMetaElement>(selector);
-      if (element) element.content = content;
-    };
-    if (settings.ogImage) {
-      setMeta('meta[property="og:image"]', settings.ogImage);
-      setMeta('meta[name="twitter:image"]', settings.ogImage);
-    }
-    if (settings.faviconImage) {
-      const icon = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
-      if (icon) icon.href = settings.faviconImage;
-      const apple = document.querySelector<HTMLLinkElement>('link[rel="apple-touch-icon"]');
-      if (apple) apple.href = settings.faviconImage;
-    }
-  }, [settings.ogImage, settings.faviconImage]);
-
   // Handle direct product link URL updates
   const handleOpenProduct = (product: Product) => {
     setSelectedProduct(product);
@@ -557,7 +536,7 @@ export default function App() {
 
           <main className="relative flex-1">
             {cartNotice && <div role="status" className="cart-notice fixed right-4 top-24 z-[60] rounded-lg border border-[#B58A42]/60 bg-[#FFF8EE] px-4 py-3 text-sm font-medium text-[#682D42] shadow-lg">{cartNotice}</div>}
-            {hangingDecorationPage && <HangingDecorations page={hangingDecorationPage} src={settings.hangingLanternImage} />}
+            {hangingDecorationPage && <HangingDecorations page={hangingDecorationPage} />}
             {currentPath === '/' && (
               <HomePage
                 categories={categories}

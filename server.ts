@@ -10,7 +10,6 @@ import multer from 'multer';
 import crypto from 'crypto';
 import type { DeliveryAddress, FulfilmentStatus, PaymentStatus, ProductVariant, StoreOrder } from './src/types';
 import { loadDb as loadDbFromStore, saveDb as saveDbToStore } from './src/lib/serverDb.ts';
-import { uploadMedia, listMedia, deleteMedia, publicUrlFor, isMediaStorageConfigured } from './src/lib/mediaStore.ts';
 import { DEFAULT_PRIVACY_POLICY } from './src/utils/privacyPolicy.ts';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -31,18 +30,29 @@ const ensureDir = (dir: string) => {
 ensureDir(DATA_DIR);
 ensureDir(UPLOADS_DIR);
 
-// Keep uploads in memory; they are persisted to Supabase Storage by the upload route.
+// Setup multer for image uploads
+const storage = multer.diskStorage({
+  destination: (_req, _file, cb) => {
+    cb(null, UPLOADS_DIR);
+  },
+  filename: (_req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase() || '.jpg';
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    cb(null, `img-${uniqueSuffix}${ext}`);
+  },
+});
+
 const upload = multer({
-  storage: multer.memoryStorage(),
+  storage,
   limits: { fileSize: 25 * 1024 * 1024 }, // 25MB limit for images & short clips
   fileFilter: (_req, file, cb) => {
-    const allowed = /jpeg|jpg|png|webp|gif|svg|mp4|webm/;
+    const allowed = /jpeg|jpg|png|webp|gif|mp4|webm/;
     const ext = allowed.test(path.extname(file.originalname).toLowerCase());
-    const mime = /^image\/(jpeg|png|webp|gif|svg\+xml)$/.test(file.mimetype) || /^video\/(mp4|webm)$/.test(file.mimetype);
+    const mime = allowed.test(file.mimetype) || file.mimetype.startsWith('video/') || file.mimetype.startsWith('image/');
     if (ext && mime) {
       return cb(null, true);
     }
-    cb(new Error('Only JPEG, PNG, WEBP, GIF, SVG, and MP4/WebM files are allowed (max 25 MB)'));
+    cb(new Error('Only JPEG, PNG, WEBP, GIF, and MP4/WebM files are allowed'));
   },
 });
 
@@ -85,18 +95,6 @@ export interface DatabaseSchema {
     storyHeading?: string;
     storyDescription?: string;
     storyImage?: string;
-    storyVideo?: string;
-    logoImage?: string;
-    faviconImage?: string;
-    ogImage?: string;
-    hangingLanternImage?: string;
-    collectionsHeroImage?: string;
-    storyPageHeroImage?: string;
-    storyPageHeroVideo?: string;
-    storyCelebrationsImage?: string;
-    storyDevotionImage?: string;
-    storyCreativityImage?: string;
-    visitUsImage?: string;
     showPhotoEnquirySection?: boolean;
     photoEnquiryHeading?: string;
     photoEnquiryText?: string;
@@ -1621,84 +1619,20 @@ app.put('/api/admin/settings', authMiddleware, async (req: Request, res: Respons
   res.json(safeWebsiteSettings());
 });
 
-// Upload to persistent Supabase Storage
-app.post('/api/admin/upload', authMiddleware, (req: Request, res: Response) => {
-  upload.single('image')(req, res, async (uploadError) => {
-    if (uploadError) {
-      const message = uploadError instanceof multer.MulterError && uploadError.code === 'LIMIT_FILE_SIZE'
-        ? 'File is too large. The maximum size is 25 MB.'
-        : 'Only JPEG, PNG, WEBP, GIF, SVG, and MP4/WebM files are allowed.';
-      res.status(400).json({ error: message });
-      return;
-    }
-    if (!req.file) {
-      res.status(400).json({ error: 'No file uploaded. Choose an image or video to upload.' });
-      return;
-    }
-    if (!isMediaStorageConfigured()) {
-      res.status(503).json({ error: 'Media storage is not configured on the server.' });
-      return;
-    }
-    try {
-      const result = await uploadMedia(req.file);
-      res.json({
-        success: true,
-        url: result.url,
-        filename: result.name,
-        size: result.size,
-      });
-    } catch (error) {
-      res.status(500).json({ error: error instanceof Error ? error.message : 'Upload failed' });
-    }
+// Image Upload
+app.post('/api/admin/upload', authMiddleware, upload.single('image'), (req: Request, res: Response) => {
+  if (!req.file) {
+    res.status(400).json({ error: 'No image file uploaded' });
+    return;
+  }
+
+  const publicUrl = `/uploads/${req.file.filename}`;
+  res.json({
+    success: true,
+    url: publicUrl,
+    filename: req.file.filename,
+    size: req.file.size,
   });
-});
-
-// List uploaded media for the media library picker
-app.get('/api/admin/media', authMiddleware, async (_req: Request, res: Response) => {
-  try {
-    res.json({ items: await listMedia() });
-  } catch {
-    res.status(500).json({ error: 'Could not list media' });
-  }
-});
-
-// Check whether a stored asset is referenced anywhere before allowing deletion
-function mediaInUse(url: string): boolean {
-  const needle = url.split('/').pop() || '';
-  if (!needle) return false;
-  const refers = (value: unknown): boolean => typeof value === 'string' && value.includes(needle);
-  if (Object.values(db.settings as Record<string, unknown>).some(refers)) return true;
-  if (Array.isArray(db.settings.productVideos) && db.settings.productVideos.some((v) => refers(v.posterImage) || refers(v.videoUrl))) return true;
-  for (const product of db.products) {
-    if (refers(product.image) || (product.additionalImages || []).some(refers)) return true;
-    if ((product.variants || []).some((v) => refers(v.image))) return true;
-  }
-  if (db.categories.some((c) => refers(c.image))) return true;
-  return false;
-}
-
-// Delete an uploaded media item (only if unused)
-app.delete('/api/admin/media/:name', authMiddleware, async (req: Request, res: Response) => {
-  const name = req.params.name;
-  if (!name || name.includes('/') || name.includes('..')) {
-    res.status(400).json({ error: 'Invalid media name' });
-    return;
-  }
-  const url = publicUrlFor(name);
-  if (!url) {
-    res.status(503).json({ error: 'Media storage is not configured on the server.' });
-    return;
-  }
-  if (mediaInUse(url)) {
-    res.status(409).json({ error: 'This file is still in use on the website. Replace its usages before deleting it.' });
-    return;
-  }
-  const deleted = await deleteMedia(name);
-  if (!deleted) {
-    res.status(500).json({ error: 'Could not delete the file' });
-    return;
-  }
-  res.json({ success: true });
 });
 
 // Setup Vite development server or production static serving

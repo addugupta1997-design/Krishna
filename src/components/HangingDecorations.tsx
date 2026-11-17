@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 export type HangingDecorationPlacement = 'upper-left' | 'upper-right' | 'upper-right-inner';
 
@@ -8,7 +8,6 @@ export interface HangingDecorationProps {
   stringLength: string;
   maxRotation: number;
   sensitivity: number;
-  src?: string;
 }
 
 interface HangingDecorationsProps {
@@ -24,7 +23,6 @@ export function HangingDecoration({
   stringLength,
   maxRotation,
   sensitivity,
-  src = '/assets/images/hanging-lantern.svg',
 }: HangingDecorationProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const targetRef = useRef(0);
@@ -141,7 +139,7 @@ export function HangingDecoration({
       <span className="hanging-decoration__string" />
       <img
         className="hanging-decoration__lantern"
-        src={src}
+        src="/assets/images/hanging-lantern.svg"
         alt=""
         draggable={false}
         onPointerMove={handlePointerMove}
@@ -152,7 +150,7 @@ export function HangingDecoration({
   );
 }
 
-export function HangingDecorations({ page, src }: { page: 'home' | 'store' | 'story' | 'visit'; src?: string }) {
+export function HangingDecorations({ page }: HangingDecorationsProps) {
   return (
     <div className={`hanging-decorations hanging-decorations--${page}`} aria-hidden="true">
       <HangingDecoration
@@ -161,7 +159,6 @@ export function HangingDecorations({ page, src }: { page: 'home' | 'store' | 'st
         stringLength="clamp(5px, 2.2vw, 30px)"
         maxRotation={5.5}
         sensitivity={0.65}
-        src={src}
       />
       <HangingDecoration
         placement="upper-right"
@@ -169,7 +166,6 @@ export function HangingDecorations({ page, src }: { page: 'home' | 'store' | 'st
         stringLength="clamp(6px, 2.7vw, 36px)"
         maxRotation={5}
         sensitivity={0.62}
-        src={src}
       />
       <HangingDecoration
         placement="upper-right-inner"
@@ -177,9 +173,7 @@ export function HangingDecorations({ page, src }: { page: 'home' | 'store' | 'st
         stringLength="clamp(10px, 3.6vw, 48px)"
         maxRotation={7}
         sensitivity={0.82}
-        src={src}
       />
     </div>
   );
 }
-
