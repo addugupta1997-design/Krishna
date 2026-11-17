@@ -35,7 +35,7 @@ function ProductPrices({ product }: { product: Product }) {
       <span className="font-serif text-sm font-bold text-[#682D42] sm:text-base">
         {highest > lowest.sellingPrice ? 'From ' : ''}
         {formatPrice(lowest.sellingPrice)}
-        {highest > lowest.sellingPrice && ` â€“ ${formatPrice(highest)}`}
+        {highest > lowest.sellingPrice && ` – ${formatPrice(highest)}`}
       </span>
       {lowest.discountPercent > 0 && (
         <span className="rounded-full bg-[#F6DCE3] px-1.5 py-0.5 text-[9px] font-semibold text-[#682D42]">

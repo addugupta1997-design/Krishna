@@ -174,7 +174,7 @@ export function OrderStatusPage({ token, settings, onContinueShopping, onPayment
             )}
           </section>
         ) : !error ? (
-          <div className="py-16 text-center text-[#682D42]">Loading order statusâ€¦</div>
+          <div className="py-16 text-center text-[#682D42]">Loading order status…</div>
         ) : null}
         <button onClick={() => void refresh()} disabled={refreshing} className="mx-auto mt-5 flex min-h-10 items-center gap-2 text-xs text-[#682D42] disabled:opacity-50">
           <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} /> Refresh payment status

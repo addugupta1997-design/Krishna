@@ -18,7 +18,7 @@ function friendlyError(message: string): string {
   }
   if (text.includes('invalid login credentials')) return 'Email or password is incorrect.';
   if (text.includes('already registered')) return 'An account with this email already exists. Sign in instead.';
-  if (text.includes('email not confirmed')) return 'Please confirm your email first â€” check your inbox for the link.';
+  if (text.includes('email not confirmed')) return 'Please confirm your email first — check your inbox for the link.';
   if (text.includes('rate limit') || text.includes('too many')) return 'Email sending limit reached. Please try again later.';
   if (text.includes('password')) return 'Password must be at least 8 characters.';
   return message;

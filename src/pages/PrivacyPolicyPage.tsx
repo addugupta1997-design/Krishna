@@ -28,7 +28,7 @@ export function PrivacyPolicyPage({ settings }: PrivacyPolicyPageProps) {
         >
           Privacy Policy
         </h1>
-        <div className="mx-auto my-5 flex max-w-48 items-center gap-3 text-[#B58A42]" aria-hidden="true">
+        <div className="mx-auto my-5 flex max-w-48 items-center gap-3 text-[#8C6627]" aria-hidden="true">
           <span className="h-px flex-1 bg-[#B58A42]/50" />
           <span className="text-sm">â—‡</span>
           <span className="h-px flex-1 bg-[#B58A42]/50" />

@@ -82,7 +82,7 @@ export function VisitUsPage({ settings, onNavigate }: VisitUsPageProps) {
                     </a>
                     {settings.secondaryCallNumber && (
                       <>
-                        <span>â€¢</span>
+                        <span>•</span>
                         <a href={`tel:${settings.secondaryCallNumber.replace(/\s+/g, '')}`} className="hover:text-[#B58A42] font-semibold underline decoration-[#B58A42]/40">
                           {settings.secondaryCallNumber}
                         </a>
@@ -165,7 +165,7 @@ export function VisitUsPage({ settings, onNavigate }: VisitUsPageProps) {
                   Explore the collections
                 </span>
               </div>
-              <span className="text-[#B58A42] group-hover:translate-x-1 transition-transform">â†’</span>
+              <span className="text-[#8C6627] group-hover:translate-x-1 transition-transform">→</span>
             </button>
 
             {/* Quick action 2 */}
@@ -181,7 +181,7 @@ export function VisitUsPage({ settings, onNavigate }: VisitUsPageProps) {
                   Ask about availability
                 </span>
               </div>
-              <span className="text-[#B58A42] group-hover:translate-x-1 transition-transform">â†’</span>
+              <span className="text-[#8C6627] group-hover:translate-x-1 transition-transform">→</span>
             </a>
 
             {/* Quick action 3 */}
@@ -197,7 +197,7 @@ export function VisitUsPage({ settings, onNavigate }: VisitUsPageProps) {
                   Visit us in Tilak Nagar
                 </span>
               </div>
-              <span className="text-[#B58A42] group-hover:translate-x-1 transition-transform">â†’</span>
+              <span className="text-[#8C6627] group-hover:translate-x-1 transition-transform">→</span>
             </a>
           </div>
         </div>
@@ -250,4 +250,5 @@ export function VisitUsPage({ settings, onNavigate }: VisitUsPageProps) {
     </div>
   );
 }
+
 

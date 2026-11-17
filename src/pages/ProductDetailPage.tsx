@@ -183,8 +183,8 @@ export function ProductDetailPage({
                 </div>
                 <p className="mt-1 text-right text-xs text-[#352D2F]/65">
                   {stock >= minimum ? `${stock} ${product.sellingUnit || 'available'}` : 'Out of stock'}
-                  {minimum > 1 && ` Â· minimum ${minimum}`}
-                  {step !== 1 && ` Â· steps of ${step}`}
+                  {minimum > 1 && ` · minimum ${minimum}`}
+                  {step !== 1 && ` · steps of ${step}`}
                 </p>
 
                 <div className="mt-5 border-t border-[#B58A42]/25 pt-4 flex items-center justify-between">

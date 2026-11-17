@@ -68,7 +68,7 @@ export function OurStoryPage({ settings, onNavigate }: OurStoryPageProps) {
               </h2>
 
               <p className="text-base text-[#352D2F]/85 leading-relaxed max-w-lg mb-6">
-                A place for wedding essentials, Bhagwan Ji shringaar, festive dÃ©cor and the little details that bring your ideas to life.
+                A place for wedding essentials, Bhagwan Ji shringaar, festive décor and the little details that bring your ideas to life.
               </p>
 
               {/* EST. 1955 Badge */}
