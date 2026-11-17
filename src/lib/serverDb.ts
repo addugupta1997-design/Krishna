@@ -7,24 +7,30 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const DB_FILE = path.join(__dirname, '..', '..', 'data', 'database.json');
 
-const url = process.env.VITE_SUPABASE_URL;
-const key = process.env.SUPABASE_SECRET_KEY;
-const endpoint = url && key ? `${url.replace(/\/+$/, '')}/rest/v1/store_data?id=eq.main&select=data` : null;
-const writeEndpoint = url && key ? `${url.replace(/\/+$/, '')}/rest/v1/store_data` : null;
-
-function headers(extra: Record<string, string> = {}): Record<string, string> {
-  return {
-    apikey: key!,
-    Authorization: `Bearer ${key!}`,
-    'Content-Type': 'application/json',
-    ...extra,
-  };
+// Read env lazily: ESM imports are hoisted, so dotenv.config() in server.ts has
+// not run yet when this module is evaluated.
+function config() {
+  const url = process.env.VITE_SUPABASE_URL;
+  const key = process.env.SUPABASE_SECRET_KEY;
+  const base = url ? url.replace(/\/+$/, '') : '';
+  return url && key
+    ? {
+        read: `${base}/rest/v1/store_data?id=eq.main&select=data`,
+        write: `${base}/rest/v1/store_data`,
+        headers: {
+          apikey: key,
+          Authorization: `Bearer ${key}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    : null;
 }
 
 export async function loadDb(): Promise<DatabaseSchema> {
-  if (endpoint) {
+  const cfg = config();
+  if (cfg) {
     try {
-      const response = await fetch(endpoint, { headers: headers(), cache: 'no-store' });
+      const response = await fetch(cfg.read, { headers: cfg.headers, cache: 'no-store' });
       if (response.ok) {
         const rows = await response.json() as Array<{ data: DatabaseSchema }>;
         if (rows?.[0]?.data) return rows[0].data;
@@ -38,10 +44,11 @@ export async function loadDb(): Promise<DatabaseSchema> {
 }
 
 export async function saveDb(data: DatabaseSchema): Promise<void> {
-  if (writeEndpoint) {
-    const response = await fetch(writeEndpoint, {
+  const cfg = config();
+  if (cfg) {
+    const response = await fetch(cfg.write, {
       method: 'POST',
-      headers: headers({ Prefer: 'resolution=merge-duplicates,return=minimal' }),
+      headers: { ...cfg.headers, Prefer: 'resolution=merge-duplicates,return=minimal' },
       body: JSON.stringify({ id: 'main', data, updated_at: new Date().toISOString() }),
     });
     if (!response.ok) throw new Error(`Supabase store_data write failed: ${response.status}`);
