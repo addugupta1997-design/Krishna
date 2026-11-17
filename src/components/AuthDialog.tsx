@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { X, Loader2 } from 'lucide-react';
+import { X, Loader2, Eye, EyeOff } from 'lucide-react';
 import type { User } from '@supabase/supabase-js';
 import { supabase, isProviderEnabled } from '../lib/supabase';
 import { useProfile } from '../hooks/useProfile';
@@ -40,6 +40,7 @@ export function AuthDialog({ open, user, onClose, initialError }: AuthDialogProp
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [signupName, setSignupName] = useState('');
   const [nameInput, setNameInput] = useState('');
   const [busy, setBusy] = useState(false);
@@ -53,6 +54,7 @@ export function AuthDialog({ open, user, onClose, initialError }: AuthDialogProp
     returnFocusRef.current = document.activeElement as HTMLElement | null;
     setError(initialError ? initialError.replace(/\+/g, ' ') : '');
     setNotice('');
+    setShowPassword(false);
     emailRef.current?.focus();
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose();
@@ -320,16 +322,27 @@ export function AuthDialog({ open, user, onClose, initialError }: AuthDialogProp
               <label htmlFor="auth-password" className="mb-1 block text-xs font-semibold text-[#682D42]">
                 Password
               </label>
-              <input
-                id="auth-password"
-                type="password"
-                autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                placeholder={mode === 'signup' ? 'At least 8 characters' : 'Your password'}
-                className={inputClass}
-                required
-              />
+              <div className="relative">
+                <input
+                  id="auth-password"
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  placeholder={mode === 'signup' ? 'At least 8 characters' : 'Your password'}
+                  className={`${inputClass} pr-11`}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((visible) => !visible)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  aria-pressed={showPassword}
+                  className="absolute right-1 top-1/2 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg text-[#682D42]/70 hover:bg-[#F6DCE3]/50 hover:text-[#682D42] focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#B58A42]"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
             </div>
 
             <div aria-live="polite" className="min-h-0">
