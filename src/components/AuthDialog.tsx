@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { X, Loader2 } from 'lucide-react';
 import type { User } from '@supabase/supabase-js';
 import { supabase, isProviderEnabled } from '../lib/supabase';
+import { useProfile } from '../hooks/useProfile';
 
 interface AuthDialogProps {
   open: boolean;
@@ -35,9 +36,11 @@ function GoogleIcon() {
 }
 
 export function AuthDialog({ open, user, onClose, initialError }: AuthDialogProps) {
+  const { profile, saving, save } = useProfile(user);
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [nameInput, setNameInput] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
@@ -61,8 +64,8 @@ export function AuthDialog({ open, user, onClose, initialError }: AuthDialogProp
   }, [open, onClose, initialError]);
 
   useEffect(() => {
-    if (open) setNotice('');
-  }, [mode, open]);
+    if (profile) setNameInput(profile.full_name ?? '');
+  }, [profile]);
 
   if (!open) return null;
 
@@ -197,6 +200,31 @@ export function AuthDialog({ open, user, onClose, initialError }: AuthDialogProp
             <p className="text-sm text-[#352D2F]/80">
               Signed in as <span className="font-semibold text-[#682D42]">{user.email}</span>
             </p>
+            <div>
+              <label htmlFor="auth-name" className="mb-1 block text-xs font-semibold text-[#682D42]">
+                Your name
+              </label>
+              <div className="flex gap-2">
+                <input
+                  id="auth-name"
+                  type="text"
+                  autoComplete="name"
+                  value={nameInput}
+                  onChange={(event) => setNameInput(event.target.value)}
+                  placeholder="Add your name"
+                  className="w-full rounded-lg border border-[#B58A42]/50 bg-white px-3.5 py-2.5 text-sm text-[#352D2F] placeholder:text-[#352D2F]/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#682D42] focus-visible:ring-offset-1"
+                />
+                <button
+                  type="button"
+                  onClick={() => save({ full_name: nameInput.trim() || null })}
+                  disabled={saving}
+                  className="inline-flex min-h-11 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-[#B58A42]/70 px-3 text-xs font-semibold text-[#682D42] hover:bg-[#F6DCE3]/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#B58A42] disabled:opacity-60"
+                >
+                  {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                  Save
+                </button>
+              </div>
+            </div>
             <div className="flex flex-col gap-2 sm:flex-row">
               <button
                 type="button"

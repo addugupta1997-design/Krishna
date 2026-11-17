@@ -9,7 +9,7 @@ import bcrypt from 'bcryptjs';
 import multer from 'multer';
 import crypto from 'crypto';
 import type { DeliveryAddress, FulfilmentStatus, PaymentStatus, ProductVariant, StoreOrder } from './src/types';
-import { DEFAULT_PRIVACY_POLICY } from './src/utils/privacyPolicy';
+import { DEFAULT_PRIVACY_POLICY } from './src/utils/privacyPolicy.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
