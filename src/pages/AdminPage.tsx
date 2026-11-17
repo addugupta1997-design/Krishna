@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import {
   Package,
   ClipboardList,
@@ -128,29 +128,59 @@ export function AdminPage({
   const [siteImageKey, setSiteImageKey] = useState<string | null>(null);
   const [activeVideoEditIndex, setActiveVideoEditIndex] = useState<number | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const [mediaLibrary, setMediaLibrary] = useState<Array<{ name: string; url: string; createdAt?: string; size?: number }>>([]);
+  const [mediaPickerKey, setMediaPickerKey] = useState<string | null>(null);
+  const [mediaPickerTarget, setMediaPickerTarget] = useState<'settings' | 'product' | 'gallery' | null>(null);
+  const [mediaError, setMediaError] = useState('');
+
+  const loadMediaLibrary = useCallback(async () => {
+    try {
+      const response = await fetch('/api/admin/media');
+      if (response.ok) {
+        const data = await response.json();
+        setMediaLibrary(data.items || []);
+      }
+    } catch {
+      // The library is optional; uploads still work without it.
+    }
+  }, []);
+
+  React.useEffect(() => {
+    if (isAuthenticated) loadMediaLibrary();
+  }, [isAuthenticated, loadMediaLibrary]);
+
+  const uploadWithProgress = (file: File): Promise<string> => new Promise((resolve, reject) => {
+    const formData = new FormData();
+    formData.append('image', file);
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '/api/admin/upload');
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) setUploadProgress(Math.round((event.loaded / event.total) * 100));
+    };
+    xhr.onload = () => {
+      setUploadProgress(null);
+      let data: { url?: string; error?: string } = {};
+      try { data = JSON.parse(xhr.responseText); } catch { /* ignore */ }
+      if (xhr.status >= 200 && xhr.status < 300 && data.url) resolve(data.url);
+      else reject(new Error(data.error || `Upload failed (${xhr.status})`));
+    };
+    xhr.onerror = () => { setUploadProgress(null); reject(new Error('Network error during upload')); };
+    xhr.send(formData);
+  });
 
   // Generic Image Upload Handler
   const handleFileUpload = async (file: File, onSuccess: (url: string) => void) => {
+    setMediaError('');
     try {
       setUploadingImage(true);
-      const formData = new FormData();
-      formData.append('image', file);
-
-      const response = await fetch('/api/admin/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error('Image upload failed');
-      }
-
-      const data = await response.json();
-      if (data.url) {
-        onSuccess(data.url);
-      }
-    } catch (err: any) {
-      alert(`Upload error: ${err.message}`);
+      const url = await uploadWithProgress(file);
+      onSuccess(url);
+      await loadMediaLibrary();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Upload failed';
+      setMediaError(message);
+      alert(`Upload error: ${message}`);
     } finally {
       setUploadingImage(false);
     }
@@ -162,16 +192,12 @@ export function AdminPage({
     try {
       const uploaded: string[] = [];
       for (const file of Array.from(files)) {
-        const formData = new FormData();
-        formData.append('image', file);
-        const response = await fetch('/api/admin/upload', { method: 'POST', body: formData });
-        const data = await response.json();
-        if (!response.ok || !data.url) throw new Error(data.error || 'An image upload failed.');
-        uploaded.push(data.url as string);
+        uploaded.push(await uploadWithProgress(file));
       }
       setEditingProduct((previous) => previous
         ? { ...previous, additionalImages: [...(previous.additionalImages || []), ...uploaded] }
         : previous);
+      await loadMediaLibrary();
     } catch (error) {
       alert(`Gallery upload error: ${error instanceof Error ? error.message : 'Upload failed'}`);
     } finally {
@@ -981,12 +1007,39 @@ export function AdminPage({
                         <ImageIcon className="w-3.5 h-3.5 text-[#B58A42]" />
                         <span>Add gallery images</span>
                       </button>
-                      {(editingProduct.additionalImages || []).length > 0 && (
-                        <div className="mt-2 flex flex-wrap gap-2">
-                          {(editingProduct.additionalImages || []).map((image, index) => (
-                            <div key={`${image}-${index}`} className="relative">
-                              <img src={image} alt={`Additional product image ${index + 1}`} className="h-14 w-14 rounded-md border border-[#B58A42]/35 object-cover" />
                               <button
+                                type="button"
+                                onClick={() => {
+                                  setMediaPickerKey('__gallery__');
+                                  setMediaPickerTarget('gallery');
+                                }}
+                                className="mt-2 inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg border border-[#B58A42]/50 bg-white text-xs font-semibold text-[#682D42] hover:bg-[#FFF8EE] transition-colors"
+                              >
+                                <ImageIcon className="w-3.5 h-3.5 text-[#B58A42]" />
+                                <span>Choose from library</span>
+                              </button>
+                              {(editingProduct.additionalImages || []).length > 0 && (
+                                <div className="mt-2 flex flex-wrap gap-2">
+                                  {(editingProduct.additionalImages || []).map((image, index) => (
+                                    <div key={`${image}-${index}`} className="relative">
+                                      <img src={image} alt={`Additional product image ${index + 1}`} className="h-14 w-14 rounded-md border border-[#B58A42]/35 object-cover" />
+                                      <div className="absolute -bottom-1 -left-1 flex gap-0.5">
+                                        <button type="button" onClick={() => setEditingProduct((previous) => {
+                                          if (!previous) return previous;
+                                          const list = [...(previous.additionalImages || [])];
+                                          if (index === 0) return previous;
+                                          [list[index - 1], list[index]] = [list[index], list[index - 1]];
+                                          return { ...previous, additionalImages: list };
+                                        })} aria-label={`Move image ${index + 1} left`} className="rounded bg-[#682D42] px-1 text-[10px] text-white">‹</button>
+                                        <button type="button" onClick={() => setEditingProduct((previous) => {
+                                          if (!previous) return previous;
+                                          const list = [...(previous.additionalImages || [])];
+                                          if (index >= list.length - 1) return previous;
+                                          [list[index], list[index + 1]] = [list[index + 1], list[index]];
+                                          return { ...previous, additionalImages: list };
+                                        })} aria-label={`Move image ${index + 1} right`} className="rounded bg-[#682D42] px-1 text-[10px] text-white">›</button>
+                                      </div>
+                                      <button
                                 type="button"
                                 onClick={() => setEditingProduct((previous) => previous ? {
                                   ...previous,
@@ -2842,14 +2895,17 @@ export function AdminPage({
                     <div className="p-5 sm:p-6 border-t border-[#B58A42]/20 bg-white/40">
                       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                         {([
-                          { key: 'logoImage', label: 'Logo emblem (navbar & footer)' },
-                          { key: 'collectionsHeroImage', label: 'Store page banner' },
-                          { key: 'storyPageHeroImage', label: 'Our Story main photo', videoKey: 'storyPageHeroVideo' },
-                          { key: 'storyCelebrationsImage', label: 'Celebrations photo (home guide + Our Story)' },
-                          { key: 'storyDevotionImage', label: 'Devotion photo (Our Story)' },
-                          { key: 'storyCreativityImage', label: 'Creativity photo (Our Story)' },
-                          { key: 'visitUsImage', label: 'Visit Us photo' },
-                        ] as Array<{ key: keyof WebsiteSettings; label: string; videoKey?: keyof WebsiteSettings }>).map((entry) => {
+                          { key: 'logoImage', label: 'Logo emblem (navbar & footer)', accept: 'image/*' },
+                          { key: 'faviconImage', label: 'Favicon / app icon', accept: 'image/*' },
+                          { key: 'ogImage', label: 'Social share image (og:image)', accept: 'image/*' },
+                          { key: 'hangingLanternImage', label: 'Hanging decoration (SVG)', accept: 'image/*' },
+                          { key: 'collectionsHeroImage', label: 'Store page banner', accept: 'image/*' },
+                          { key: 'storyPageHeroImage', label: 'Our Story main photo', videoKey: 'storyPageHeroVideo', accept: 'image/*' },
+                          { key: 'storyCelebrationsImage', label: 'Celebrations photo (home guide + Our Story)', accept: 'image/*' },
+                          { key: 'storyDevotionImage', label: 'Devotion photo (Our Story)', accept: 'image/*' },
+                          { key: 'storyCreativityImage', label: 'Creativity photo (Our Story)', accept: 'image/*' },
+                          { key: 'visitUsImage', label: 'Visit Us photo', accept: 'image/*' },
+                        ] as Array<{ key: keyof WebsiteSettings; label: string; videoKey?: keyof WebsiteSettings; accept?: string }>).map((entry) => {
                           const videoVal = entry.videoKey ? String(localSettings[entry.videoKey] || '') : '';
                           return (
                           <div key={entry.key} className="space-y-2">
@@ -2874,6 +2930,26 @@ export function AdminPage({
                                 <Upload className="w-3.5 h-3.5 text-[#B58A42]" />
                                 <span>{uploadingImage ? 'Uploading...' : 'Change image'}</span>
                               </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setMediaPickerKey(entry.key);
+                                  setMediaPickerTarget('settings');
+                                }}
+                                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-[#B58A42]/50 bg-white text-xs font-semibold text-[#682D42] hover:bg-[#FFF8EE] transition-colors"
+                              >
+                                <ImageIcon className="w-3.5 h-3.5 text-[#B58A42]" />
+                                <span>From library</span>
+                              </button>
+                              {String(localSettings[entry.key] || '') && (
+                                <button
+                                  type="button"
+                                  onClick={() => setLocalSettings((prev) => ({ ...prev, [entry.key]: '' }))}
+                                  className="px-2 py-1.5 text-xs text-[#352D2F]/70 underline underline-offset-2 hover:text-[#682D42]"
+                                >
+                                  Clear
+                                </button>
+                              )}
                               {entry.videoKey && (
                                 <>
                                   <button
@@ -2905,6 +2981,83 @@ export function AdminPage({
                         })}
                       </div>
                     </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Media Library */}
+              <div className="rounded-2xl bg-[#F6DCE3]/30 border border-[#B58A42]/40 shadow-xs overflow-hidden">
+                <div className="w-full px-5 py-4 flex items-center justify-between text-left">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-[#682D42] text-[#FFF8EE] flex items-center justify-center"><ImageIcon className="w-4 h-4" /></div>
+                    <div>
+                      <h2 className="font-serif text-base sm:text-lg font-bold text-[#682D42]">Media Library</h2>
+                      <p className="text-[11px] text-[#352D2F]/70">Uploaded images and videos. Select one to use it, or delete unused files.</p>
+                    </div>
+                  </div>
+                  <button type="button" onClick={loadMediaLibrary} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#B58A42]/50 bg-white text-xs font-semibold text-[#682D42]">
+                    <Sparkles className="w-3.5 h-3.5" /> Refresh
+                  </button>
+                </div>
+                <div className="px-5 pb-5">
+                  <p className="text-[11px] text-[#352D2F]/70 mb-3">
+                    Supported: JPEG, PNG, WEBP, GIF, SVG, MP4, WebM · Max 25 MB per file · Stored permanently in Supabase Storage
+                  </p>
+                  {mediaError && <p role="alert" className="mb-3 rounded-lg bg-[#682D42]/10 px-3 py-2 text-xs text-[#682D42]">{mediaError}</p>}
+                  {uploadProgress !== null && (
+                    <div className="mb-3">
+                      <div className="h-1.5 w-full rounded-full bg-[#F6DCE3] overflow-hidden">
+                        <div className="h-full bg-[#682D42] transition-all" style={{ width: `${uploadProgress}%` }} />
+                      </div>
+                      <p className="mt-1 text-[11px] text-[#352D2F]/70">Uploading… {uploadProgress}%</p>
+                    </div>
+                  )}
+                  {mediaLibrary.length === 0 ? (
+                    <p className="rounded-xl border border-dashed border-[#B58A42]/40 p-6 text-center text-xs text-[#352D2F]/70">
+                      No uploads yet. Use “Change image” or “Upload” on any section to add media here.
+                    </p>
+                  ) : (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                      {mediaLibrary.map((item) => {
+                        const isVideo = /\.(mp4|webm)$/i.test(item.name);
+                        return (
+                          <div key={item.name} className="rounded-xl border border-[#B58A42]/40 bg-white p-2 space-y-2">
+                            <div className="w-full aspect-[4/3] rounded-lg overflow-hidden bg-[#F6DCE3]/40 flex items-center justify-center">
+                              {isVideo ? <Video className="w-8 h-8 text-[#682D42]" /> : <img src={item.url} alt="" className="w-full h-full object-cover" loading="lazy" />}
+                            </div>
+                            <p className="truncate text-[10px] text-[#352D2F]/80" title={item.name}>{item.name}</p>
+                            <div className="flex gap-1.5">
+                              <button type="button" onClick={() => {
+                                if (mediaPickerTarget === 'gallery') {
+                                  setEditingProduct((prev) => prev ? { ...prev, additionalImages: [...(prev.additionalImages || []), item.url] } : prev);
+                                  setMediaPickerTarget(null);
+                                } else if (mediaPickerKey) {
+                                  setLocalSettings((prev) => ({ ...prev, [mediaPickerKey]: item.url }));
+                                  setMediaPickerKey(null);
+                                } else {
+                                  navigator.clipboard?.writeText(item.url);
+                                }
+                              }} className="flex-1 px-2 py-1 rounded bg-[#682D42] text-white text-[10px] font-semibold">
+                                {mediaPickerKey || mediaPickerTarget ? 'Use' : 'Copy URL'}
+                              </button>
+                              <button type="button" onClick={async () => {
+                                if (!window.confirm('Delete this file? Files still in use cannot be deleted.')) return;
+                                const res = await fetch(`/api/admin/media/${encodeURIComponent(item.name)}`, { method: 'DELETE' });
+                                const data = await res.json().catch(() => ({}));
+                                if (!res.ok) { setMediaError(data.error || 'Delete failed'); return; }
+                                await loadMediaLibrary();
+                              }} className="px-2 py-1 rounded border border-red-300 text-red-700 text-[10px] font-semibold">Delete</button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                  {(mediaPickerKey || mediaPickerTarget) && (
+                    <p className="mt-3 text-xs text-[#682D42]">
+                      Select a file above for {mediaPickerTarget === 'gallery' ? 'the product gallery' : <strong>{mediaPickerKey}</strong>}, or{' '}
+                      <button type="button" onClick={() => { setMediaPickerKey(null); setMediaPickerTarget(null); }} className="underline">cancel</button>.
+                    </p>
                   )}
                 </div>
               </div>
