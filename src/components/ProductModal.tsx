@@ -125,7 +125,7 @@ export function ProductModal({ product, category, settings, onClose }: ProductMo
                 rel="noopener noreferrer"
                 className="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-full border border-[#B58A42]/60 text-[#682D42] font-medium text-xs hover:bg-[#F6DCE3]/50 transition-colors"
               >
-                <span>Enquire details</span>
+                <span>Ask for details</span>
               </a>
 
               <button

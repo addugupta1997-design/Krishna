@@ -140,15 +140,15 @@ export function Footer({ settings, onNavigateCategory, onNavigatePage }: FooterP
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex min-w-0 items-center gap-2 py-1.5 text-xs sm:text-[13px] text-[#FFF8EE]/90 hover:text-[#DFBE7A] transition-colors"
-                title="Follow Krishna Tracers on Instagram"
+                title="Follow Krishna Tracer on Instagram"
               >
                 <Instagram className="w-4 h-4 text-[#DFBE7A] shrink-0" />
-                <span className="min-w-0 break-words font-medium tracking-wide">Krishna Tracers</span>
+                <span className="min-w-0 break-words font-medium tracking-wide">Krishna Tracer</span>
               </a>
             ) : (
               <span className="inline-flex min-w-0 items-center gap-2 text-xs sm:text-[13px] text-[#FFF8EE]/60 cursor-default">
                 <Instagram className="w-4 h-4 text-[#DFBE7A]/60 shrink-0" />
-                <span className="min-w-0 break-words font-medium tracking-wide">Krishna Tracers</span>
+                <span className="min-w-0 break-words font-medium tracking-wide">Krishna Tracer</span>
               </span>
             )}
 

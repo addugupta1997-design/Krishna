@@ -2641,7 +2641,7 @@ export function AdminPage({
                             localSettings.instagramUrl.includes('instagram.com') ? (
                               <span className="text-[10px] text-emerald-700 flex items-center gap-1 mt-1 font-medium">
                                 <Check className="w-3 h-3 text-emerald-600 shrink-0" />
-                                Valid HTTPS Instagram profile URL (destination for footer button &ldquo;Krishna Tracers&rdquo;)
+                                Valid HTTPS Instagram profile URL (destination for footer button “Krishna Tracer”)
                               </span>
                             ) : (
                               <span className="text-[10px] text-amber-700 flex items-center gap-1 mt-1">
@@ -2651,7 +2651,7 @@ export function AdminPage({
                             )
                           ) : (
                             <span className="text-[10px] text-[#352D2F]/65 block mt-1 italic">
-                              ⓘ The footer displays the label &ldquo;Krishna Tracers&rdquo; linking to this destination.
+                              ⓘ The footer displays the label “Krishna Tracer” linking to this destination.
                             </span>
                           )}
                         </div>
