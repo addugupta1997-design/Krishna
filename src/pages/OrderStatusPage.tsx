@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+﻿import React, { useCallback, useEffect, useState } from 'react';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 import type { StoreOrder, WebsiteSettings } from '../types';
 import { createWhatsAppGeneralLink } from '../utils/whatsapp';
@@ -12,7 +12,7 @@ interface OrderStatusPageProps {
 }
 
 function money(value: number): string {
-  return `₹${value.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
+  return `â‚¹${value.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
 }
 
 export function OrderStatusPage({ token, settings, onContinueShopping, onPaymentVerified, onRetry }: OrderStatusPageProps) {
@@ -74,7 +74,7 @@ export function OrderStatusPage({ token, settings, onContinueShopping, onPayment
         )}
         {order ? (
           <section className="rounded-2xl border border-[#B58A42]/40 bg-[#FFF8EE] p-5 sm:p-8 shadow-sm">
-            <p className="text-xs font-semibold uppercase tracking-widest text-[#B58A42]">Order {order.reference}</p>
+            <p className="text-xs font-semibold uppercase tracking-widest text-[#8C6627]">Order {order.reference}</p>
             <h1 className="mt-2 font-serif text-2xl sm:text-3xl font-bold text-[#682D42]">{statusText}</h1>
             {order.paymentStatus === 'PENDING' && (
               <p className="mt-2 text-sm text-[#352D2F]/75">We are waiting for Cashfree to verify your payment. This page will refresh automatically. Please do not make another payment.</p>
@@ -174,7 +174,7 @@ export function OrderStatusPage({ token, settings, onContinueShopping, onPayment
             )}
           </section>
         ) : !error ? (
-          <div className="py-16 text-center text-[#682D42]">Loading order status…</div>
+          <div className="py-16 text-center text-[#682D42]">Loading order statusâ€¦</div>
         ) : null}
         <button onClick={() => void refresh()} disabled={refreshing} className="mx-auto mt-5 flex min-h-10 items-center gap-2 text-xs text-[#682D42] disabled:opacity-50">
           <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} /> Refresh payment status
@@ -183,3 +183,4 @@ export function OrderStatusPage({ token, settings, onContinueShopping, onPayment
     </div>
   );
 }
+

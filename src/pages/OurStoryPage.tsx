@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { ArrowRight, MessageCircle } from 'lucide-react';
 import { FloralCorner, FloralDivider } from '../components/Ornaments';
 import { createWhatsAppGeneralLink } from '../utils/whatsapp';
@@ -50,7 +50,7 @@ export function OurStoryPage({ settings, onNavigate }: OurStoryPageProps) {
                 <FloralCorner className="w-14 h-14 text-[#B58A42]/60 -scale-x-100 -scale-y-100" />
               </div>
 
-              <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.22em] text-[#B58A42] mb-3 block">
+              <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.22em] text-[#8C6627] mb-3 block">
                 OUR STORY
               </span>
 
@@ -68,13 +68,13 @@ export function OurStoryPage({ settings, onNavigate }: OurStoryPageProps) {
               </h2>
 
               <p className="text-base text-[#352D2F]/85 leading-relaxed max-w-lg mb-6">
-                A place for wedding essentials, Bhagwan Ji shringaar, festive décor and the little details that bring your ideas to life.
+                A place for wedding essentials, Bhagwan Ji shringaar, festive dÃ©cor and the little details that bring your ideas to life.
               </p>
 
               {/* EST. 1955 Badge */}
               <div className="flex items-center gap-4 my-2">
                 <span className="h-[1px] w-12 sm:w-16 bg-[#B58A42]/50" />
-                <span className="px-4 py-1.5 rounded-full border border-[#B58A42]/70 bg-[#FFF8EE] text-xs font-serif font-bold tracking-widest text-[#B58A42] shadow-2xs">
+                <span className="px-4 py-1.5 rounded-full border border-[#B58A42]/70 bg-[#FFF8EE] text-xs font-serif font-bold tracking-widest text-[#8C6627] shadow-2xs">
                   EST. 1955
                 </span>
                 <span className="h-[1px] w-12 sm:w-16 bg-[#B58A42]/50" />
@@ -186,3 +186,5 @@ export function OurStoryPage({ settings, onNavigate }: OurStoryPageProps) {
     </div>
   );
 }
+
+

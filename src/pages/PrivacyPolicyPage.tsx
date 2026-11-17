@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Phone } from 'lucide-react';
 import { createWhatsAppGeneralLink } from '../utils/whatsapp';
 import { DEFAULT_PRIVACY_POLICY } from '../utils/privacyPolicy';
@@ -19,7 +19,7 @@ export function PrivacyPolicyPage({ settings }: PrivacyPolicyPageProps) {
     >
       <div className="container-public">
         <div className="mx-auto max-w-3xl">
-        <p className="text-center text-[10px] font-semibold uppercase tracking-[0.24em] text-[#B58A42]">
+        <p className="text-center text-[10px] font-semibold uppercase tracking-[0.24em] text-[#8C6627]">
           Krishna Tracer
         </p>
         <h1
@@ -30,7 +30,7 @@ export function PrivacyPolicyPage({ settings }: PrivacyPolicyPageProps) {
         </h1>
         <div className="mx-auto my-5 flex max-w-48 items-center gap-3 text-[#B58A42]" aria-hidden="true">
           <span className="h-px flex-1 bg-[#B58A42]/50" />
-          <span className="text-sm">◇</span>
+          <span className="text-sm">â—‡</span>
           <span className="h-px flex-1 bg-[#B58A42]/50" />
         </div>
 
@@ -93,3 +93,4 @@ export function PrivacyPolicyPage({ settings }: PrivacyPolicyPageProps) {
   </article>
 );
 }
+

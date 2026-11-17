@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { X, MessageCircle, Share2, Check, ExternalLink } from 'lucide-react';
 import type { Product, Category, WebsiteSettings } from '../types';
 import { createWhatsAppOrderLink, createWhatsAppEnquiryLink } from '../utils/whatsapp';
@@ -72,7 +72,7 @@ export function ProductModal({ product, category, settings, onClose }: ProductMo
         <div className="w-full md:w-1/2 p-6 sm:p-7 flex flex-col justify-between">
           <div className="space-y-3">
             {category && (
-              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#B58A42] block">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8C6627] block">
                 {category.name}
               </span>
             )}
@@ -88,7 +88,7 @@ export function ProductModal({ product, category, settings, onClose }: ProductMo
               {product.price && product.price > 0 ? (
                 <div className="flex items-baseline gap-2">
                   <span className="text-xl font-bold font-serif text-[#682D42]">
-                    ₹{product.price.toLocaleString('en-IN')}
+                    â‚¹{product.price.toLocaleString('en-IN')}
                   </span>
                   <span className="text-xs text-[#352D2F]/60">Approx. / Piece</span>
                 </div>
@@ -148,3 +148,4 @@ export function ProductModal({ product, category, settings, onClose }: ProductMo
     </div>
   );
 }
+

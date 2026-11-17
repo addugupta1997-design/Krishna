@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+﻿import React, { useEffect, useRef, useState } from 'react';
 import { X, Loader2, Eye, EyeOff } from 'lucide-react';
 import type { User } from '@supabase/supabase-js';
 import { supabase, isProviderEnabled } from '../lib/supabase';
@@ -18,7 +18,7 @@ function friendlyError(message: string): string {
   }
   if (text.includes('invalid login credentials')) return 'Email or password is incorrect.';
   if (text.includes('already registered')) return 'An account with this email already exists. Sign in instead.';
-  if (text.includes('email not confirmed')) return 'Please confirm your email first — check your inbox for the link.';
+  if (text.includes('email not confirmed')) return 'Please confirm your email first â€” check your inbox for the link.';
   if (text.includes('rate limit') || text.includes('too many')) return 'Email sending limit reached. Please try again later.';
   if (text.includes('password')) return 'Password must be at least 8 characters.';
   return message;
@@ -198,7 +198,7 @@ export function AuthDialog({ open, user, onClose, initialError }: AuthDialogProp
       >
         <div className="mb-4 flex items-start justify-between gap-4">
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#B58A42]">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#8C6627]">
               Krishna Tracer
             </p>
             <h2 id="auth-dialog-title" className="mt-1 font-serif text-2xl font-bold text-[#682D42]">
@@ -384,3 +384,4 @@ export function AuthDialog({ open, user, onClose, initialError }: AuthDialogProp
     </div>
   );
 }
+

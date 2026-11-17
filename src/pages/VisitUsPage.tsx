@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { MapPin, Phone, MessageCircle, Clock, Navigation, Gift, Sparkles, HelpCircle } from 'lucide-react';
 import { FloralCorner, FloralDivider } from '../components/Ornaments';
 import { createWhatsAppGeneralLink, createWhatsAppCustomLink } from '../utils/whatsapp';
@@ -31,7 +31,7 @@ export function VisitUsPage({ settings, onNavigate }: VisitUsPageProps) {
                 <FloralCorner className="w-14 h-14 text-[#B58A42]/60" />
               </div>
 
-              <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.22em] text-[#B58A42] mb-3 block">
+              <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.22em] text-[#8C6627] mb-3 block">
                 FOR EVERY BEAUTIFUL TRADITION
               </span>
 
@@ -82,7 +82,7 @@ export function VisitUsPage({ settings, onNavigate }: VisitUsPageProps) {
                     </a>
                     {settings.secondaryCallNumber && (
                       <>
-                        <span>•</span>
+                        <span>â€¢</span>
                         <a href={`tel:${settings.secondaryCallNumber.replace(/\s+/g, '')}`} className="hover:text-[#B58A42] font-semibold underline decoration-[#B58A42]/40">
                           {settings.secondaryCallNumber}
                         </a>
@@ -124,7 +124,7 @@ export function VisitUsPage({ settings, onNavigate }: VisitUsPageProps) {
                   </div>
                 </div>
 
-                <p className="text-[11px] text-[#352D2F]/60 text-center italic pt-1">
+                <p className="text-[11px] text-[#352D2F]/80 text-center italic pt-1">
                   Message us for exact directions and current store timings.
                 </p>
               </div>
@@ -165,7 +165,7 @@ export function VisitUsPage({ settings, onNavigate }: VisitUsPageProps) {
                   Explore the collections
                 </span>
               </div>
-              <span className="text-[#B58A42] group-hover:translate-x-1 transition-transform">→</span>
+              <span className="text-[#B58A42] group-hover:translate-x-1 transition-transform">â†’</span>
             </button>
 
             {/* Quick action 2 */}
@@ -181,7 +181,7 @@ export function VisitUsPage({ settings, onNavigate }: VisitUsPageProps) {
                   Ask about availability
                 </span>
               </div>
-              <span className="text-[#B58A42] group-hover:translate-x-1 transition-transform">→</span>
+              <span className="text-[#B58A42] group-hover:translate-x-1 transition-transform">â†’</span>
             </a>
 
             {/* Quick action 3 */}
@@ -197,7 +197,7 @@ export function VisitUsPage({ settings, onNavigate }: VisitUsPageProps) {
                   Visit us in Tilak Nagar
                 </span>
               </div>
-              <span className="text-[#B58A42] group-hover:translate-x-1 transition-transform">→</span>
+              <span className="text-[#B58A42] group-hover:translate-x-1 transition-transform">â†’</span>
             </a>
           </div>
         </div>
@@ -250,3 +250,4 @@ export function VisitUsPage({ settings, onNavigate }: VisitUsPageProps) {
     </div>
   );
 }
+

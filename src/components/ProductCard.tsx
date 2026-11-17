@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+﻿import React, { useEffect, useRef, useState } from 'react';
 import { X } from 'lucide-react';
 import type { Product, Category } from '../types';
 import { formatPrice, getProductPriceDisplay } from '../utils/pricing';
@@ -23,26 +23,26 @@ function ProductPrices({ product }: { product: Product }) {
     0,
   );
 
-  if (!lowest) return <p className="text-[11px] text-[#352D2F]/65">Price unavailable</p>;
+  if (!lowest) return <p className="text-[11px] text-[#352D2F]/80">Price unavailable</p>;
 
   return (
     <div className="mt-1 flex min-h-7 flex-wrap items-center justify-center gap-x-1.5 gap-y-1">
       {lowest.salePrice !== undefined && lowest.discountPercent > 0 && (
-        <span className="text-[10px] text-[#352D2F]/60 line-through sm:text-xs">
+        <span className="text-[10px] text-[#352D2F]/80 line-through sm:text-xs">
           {formatPrice(lowest.regularPrice)}
         </span>
       )}
       <span className="font-serif text-sm font-bold text-[#682D42] sm:text-base">
         {highest > lowest.sellingPrice ? 'From ' : ''}
         {formatPrice(lowest.sellingPrice)}
-        {highest > lowest.sellingPrice && ` – ${formatPrice(highest)}`}
+        {highest > lowest.sellingPrice && ` â€“ ${formatPrice(highest)}`}
       </span>
       {lowest.discountPercent > 0 && (
         <span className="rounded-full bg-[#F6DCE3] px-1.5 py-0.5 text-[9px] font-semibold text-[#682D42]">
           {lowest.discountPercent}% OFF
         </span>
       )}
-      <span className="w-full text-[10px] text-[#352D2F]/70">
+      <span className="w-full text-[10px] text-[#352D2F]/80">
         / {product.sellingUnit || 'unit'}
       </span>
     </div>
@@ -127,7 +127,7 @@ export function ProductCard({ product, category, onShopNow, onAddToCart }: Produ
 
       <div className="flex flex-1 flex-col p-2.5 text-center sm:p-4 lg:p-5">
         <div className="min-w-0">
-          {category && <p className="mb-0.5 hidden truncate text-[9px] uppercase tracking-wide text-[#B58A42] sm:block">{category.name}</p>}
+          {category && <p className="mb-0.5 hidden truncate text-[9px] uppercase tracking-wide text-[#8C6627] sm:block">{category.name}</p>}
           <a
             href={productUrl}
             onClick={(event) => {
@@ -140,7 +140,7 @@ export function ProductCard({ product, category, onShopNow, onAddToCart }: Produ
           </a>
           <ProductPrices product={product} />
           {unavailableText && (
-            <p className="mt-1 min-h-4 text-[10px] text-[#352D2F]/65 sm:text-xs" aria-live="polite">
+            <p className="mt-1 min-h-4 text-[10px] text-[#352D2F]/80 sm:text-xs" aria-live="polite">
               {unavailableText}
             </p>
           )}
@@ -229,3 +229,4 @@ export function ProductCard({ product, category, onShopNow, onAddToCart }: Produ
     </article>
   );
 }
+

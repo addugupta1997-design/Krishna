@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+﻿import React, { useMemo, useState } from 'react';
 import { ArrowLeft, ChevronLeft, ChevronRight, Minus, Plus, ShoppingCart } from 'lucide-react';
 import type { Category, Product } from '../types';
 import { formatPrice, getProductPriceDisplay } from '../utils/pricing';
@@ -115,7 +115,7 @@ export function ProductDetailPage({
           </section>
 
           <section className="rounded-xl border border-[#B58A42]/35 bg-[#FFF8EE] p-4 sm:p-6">
-            {category && <p className="text-xs uppercase tracking-widest font-semibold text-[#B58A42]">{category.name}</p>}
+            {category && <p className="text-xs uppercase tracking-widest font-semibold text-[#8C6627]">{category.name}</p>}
             <h1 className="mt-1 font-serif text-2xl sm:text-3xl font-bold text-[#682D42]">{product.name}</h1>
             <p className="mt-3 text-sm leading-relaxed text-[#352D2F]/80">{product.description}</p>
 
@@ -183,8 +183,8 @@ export function ProductDetailPage({
                 </div>
                 <p className="mt-1 text-right text-xs text-[#352D2F]/65">
                   {stock >= minimum ? `${stock} ${product.sellingUnit || 'available'}` : 'Out of stock'}
-                  {minimum > 1 && ` · minimum ${minimum}`}
-                  {step !== 1 && ` · steps of ${step}`}
+                  {minimum > 1 && ` Â· minimum ${minimum}`}
+                  {step !== 1 && ` Â· steps of ${step}`}
                 </p>
 
                 <div className="mt-5 border-t border-[#B58A42]/25 pt-4 flex items-center justify-between">
@@ -231,3 +231,4 @@ export function ProductDetailPage({
     </div>
   );
 }
+

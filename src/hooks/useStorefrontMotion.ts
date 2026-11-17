@@ -17,7 +17,7 @@ export function useStorefrontMotion(root: RefObject<HTMLDivElement | null>, revi
       if (hero) {
         const intro = gsap.timeline({ defaults: { ease: 'power3.out', duration: .9 } });
         intro.from(hero.querySelectorAll('h1, p, [data-motion-actions]'), {
-          y: 22, opacity: 0, stagger: .12, clearProps: 'transform,opacity',
+          y: 22, stagger: .12, clearProps: 'transform',
         });
         const photo = hero.querySelector('img');
         if (photo) intro.from(photo, { scale: 1.07, duration: 1.3, clearProps: 'transform' }, 0);
@@ -32,7 +32,7 @@ export function useStorefrontMotion(root: RefObject<HTMLDivElement | null>, revi
       });
       visible('[data-motion-categories]').forEach(grid => {
         gsap.from(grid.children, {
-          y: 22, opacity: .35, duration: .65, stagger: .08, ease: 'power2.out', clearProps: 'transform,opacity',
+          y: 22, duration: .65, stagger: .08, ease: 'power2.out', clearProps: 'transform',
           scrollTrigger: { trigger: grid, start: 'top 90%', once: true },
         });
       });

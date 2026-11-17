@@ -229,12 +229,12 @@ body::-webkit-scrollbar {
 .storefront button:not(:disabled) { cursor: pointer; }
 .storefront .animate-marquee-ltr:focus-within { animation-play-state: paused; }
 @keyframes collection-refresh {
-  from { opacity: .55; }
-  to { opacity: 1; }
+  from { transform: translateY(4px); }
+  to { transform: translateY(0); }
 }
 @keyframes cart-feedback {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { transform: translateY(8px); }
+  to { transform: translateY(0); }
 }
 @keyframes cart-count {
   0% { transform: scale(.8); }
