@@ -1,4 +1,4 @@
-import express, { Request, Response, NextFunction } from 'express';
+﻿import express, { Request, Response, NextFunction } from 'express';
 import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
@@ -9,6 +9,7 @@ import bcrypt from 'bcryptjs';
 import multer from 'multer';
 import crypto from 'crypto';
 import type { DeliveryAddress, FulfilmentStatus, PaymentStatus, ProductVariant, StoreOrder } from './src/types';
+import { loadDb as loadDbFromStore, saveDb as saveDbToStore } from './src/lib/serverDb.ts';
 import { DEFAULT_PRIVACY_POLICY } from './src/utils/privacyPolicy.ts';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -21,13 +22,13 @@ const DATA_DIR = path.join(__dirname, 'data');
 const DB_FILE = path.join(DATA_DIR, 'database.json');
 const UPLOADS_DIR = path.join(__dirname, 'public', 'uploads');
 
-// Ensure directories exist
-if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
-}
-if (!fs.existsSync(UPLOADS_DIR)) {
-  fs.mkdirSync(UPLOADS_DIR, { recursive: true });
-}
+// Directories are created on demand locally; Supabase holds the data on serverless hosts.
+const ensureDir = (dir: string) => {
+  if (fs.existsSync(dir)) return;
+  try { fs.mkdirSync(dir, { recursive: true }); } catch { /* read-only filesystem */ }
+};
+ensureDir(DATA_DIR);
+ensureDir(UPLOADS_DIR);
 
 // Setup multer for image uploads
 const storage = multer.diskStorage({
@@ -55,7 +56,7 @@ const upload = multer({
   },
 });
 
-interface DatabaseSchema {
+export interface DatabaseSchema {
   admin: {
     username: string;
     passwordHash: string;
@@ -136,7 +137,7 @@ interface DatabaseSchema {
 }
 
 function getInitialDatabase(): DatabaseSchema {
-  // Admin credentials from environment variables — never hardcoded in source
+  // Admin credentials from environment variables â€” never hardcoded in source
   const adminUsername = process.env.ADMIN_USERNAME || 'admin';
   const adminPassword = process.env.ADMIN_PASSWORD || '';
   if (!adminPassword) {
@@ -152,13 +153,13 @@ function getInitialDatabase(): DatabaseSchema {
     },
     settings: {
       heroHeadline: 'Little details. Beautiful celebrations.',
-      heroSupportingText: 'Wedding essentials, divine shringaar and festive décor — all in one place.',
+      heroSupportingText: 'Wedding essentials, divine shringaar and festive dÃ©cor â€” all in one place.',
       heroImage: '/assets/images/hero_photography.jpg',
       whatsappNumber: '+91 98912 99770',
       primaryCallNumber: '+91 98912 99770',
       secondaryCallNumber: '+91 99117 62720',
-      address: '11/6A, Central Market,\nNear Verma Watch, Tilak Nagar,\nNew Delhi – 110018',
-      timings: '10:45 AM – 8:30 PM',
+      address: '11/6A, Central Market,\nNear Verma Watch, Tilak Nagar,\nNew Delhi â€“ 110018',
+      timings: '10:45 AM â€“ 8:30 PM',
       closedDay: 'Wednesday',
       instagramHandle: '@krishnatracer',
       instagramUrl: 'https://instagram.com/krishnatracer',
@@ -191,7 +192,7 @@ function getInitialDatabase(): DatabaseSchema {
       },
       {
         id: 'cat-4',
-        name: 'Festive Décor',
+        name: 'Festive DÃ©cor',
         slug: 'festive-decor',
         image: '/assets/images/prod_bandhanwar.jpg',
         isVisible: true,
@@ -267,7 +268,7 @@ function getInitialDatabase(): DatabaseSchema {
         name: 'Festive Diya & Lantern',
         slug: 'festive-diya-lantern',
         categoryId: 'cat-4',
-        description: 'Antique finish brass lantern and ornate diya holder for festive home celebrations and mandir décor.',
+        description: 'Antique finish brass lantern and ornate diya holder for festive home celebrations and mandir dÃ©cor.',
         price: null,
         isVisible: true,
         isHighlighted: true,
@@ -288,50 +289,43 @@ function getInitialDatabase(): DatabaseSchema {
   };
 }
 
-// Database helper functions with atomic write
-function loadDb(): DatabaseSchema {
-  if (!fs.existsSync(DB_FILE)) {
-    const initial = getInitialDatabase();
-    saveDb(initial);
-    return initial;
-  }
+// Database helpers backed by Supabase (falls back to the local JSON file in dev).
+async function loadDb(): Promise<DatabaseSchema> {
+  let stored: DatabaseSchema;
   try {
-    const raw = fs.readFileSync(DB_FILE, 'utf-8');
-    const stored = JSON.parse(raw) as DatabaseSchema;
-    let migrated = false;
-    if (!Array.isArray(stored.orders)) {
-      stored.orders = [];
-      migrated = true;
-    }
-    if (!Array.isArray(stored.processedWebhookEvents)) {
-      stored.processedWebhookEvents = [];
-      migrated = true;
-    }
-    for (const product of stored.products) {
-      if (product.onlinePurchaseEnabled === undefined) { product.onlinePurchaseEnabled = false; migrated = true; }
-      if (!product.sellingUnit) { product.sellingUnit = 'piece'; migrated = true; }
-      if (!product.minimumQuantity) { product.minimumQuantity = 1; migrated = true; }
-      if (!product.quantityStep) { product.quantityStep = 1; migrated = true; }
-      if (!product.additionalImages) { product.additionalImages = []; migrated = true; }
-    }
-    if (migrated) saveDb(stored);
-    return stored;
+    stored = await loadDbFromStore();
   } catch (err) {
     console.error('Error reading database, restoring defaults:', err);
-    const initial = getInitialDatabase();
-    saveDb(initial);
-    return initial;
+    stored = getInitialDatabase();
+    await saveDbToStore(stored);
+    return stored;
   }
+  let migrated = false;
+  if (!Array.isArray(stored.orders)) {
+    stored.orders = [];
+    migrated = true;
+  }
+  if (!Array.isArray(stored.processedWebhookEvents)) {
+    stored.processedWebhookEvents = [];
+    migrated = true;
+  }
+  for (const product of stored.products) {
+    if (product.onlinePurchaseEnabled === undefined) { product.onlinePurchaseEnabled = false; migrated = true; }
+    if (!product.sellingUnit) { product.sellingUnit = 'piece'; migrated = true; }
+    if (!product.minimumQuantity) { product.minimumQuantity = 1; migrated = true; }
+    if (!product.quantityStep) { product.quantityStep = 1; migrated = true; }
+    if (!product.additionalImages) { product.additionalImages = []; migrated = true; }
+  }
+  if (migrated) await saveDbToStore(stored);
+  return stored;
 }
 
-function saveDb(data: DatabaseSchema): void {
-  const tempFile = `${DB_FILE}.tmp-${Date.now()}`;
-  fs.writeFileSync(tempFile, JSON.stringify(data, null, 2), 'utf-8');
-  fs.renameSync(tempFile, DB_FILE);
+async function saveDb(data: DatabaseSchema): Promise<void> {
+  await saveDbToStore(data);
 }
 
 // Initialize database
-let db = loadDb();
+let db = await loadDb();
 
 const CASHFREE_API_VERSION = '2026-01-01';
 const ORDER_HOLD_MS = 20 * 60 * 1000;
@@ -505,7 +499,7 @@ function releaseOrderReservation(order: StoreOrder, nextStatus: PaymentStatus): 
   order.updatedAt = new Date().toISOString();
 }
 
-function finalisePaidOrder(order: StoreOrder, providerOrder: CashfreeOrderResponse): void {
+async function finalisePaidOrder(order: StoreOrder, providerOrder: CashfreeOrderResponse): Promise<void> {
   if (
     providerOrder.order_status !== 'PAID' ||
     providerOrder.order_currency !== 'INR' ||
@@ -537,7 +531,7 @@ function finalisePaidOrder(order: StoreOrder, providerOrder: CashfreeOrderRespon
   order.inventoryReserved = false;
   order.paymentStatus = 'PAID';
   order.updatedAt = new Date().toISOString();
-  saveDb(db);
+  await saveDb(db);
 }
 
 async function refreshProviderOrder(order: StoreOrder): Promise<void> {
@@ -546,17 +540,17 @@ async function refreshProviderOrder(order: StoreOrder): Promise<void> {
   const providerOrder = await cashfreeRequest<CashfreeOrderResponse>(
     `/orders/${encodeURIComponent(order.providerOrderId)}`
   );
-  db = loadDb();
+  db = await loadDb();
   const storedOrder = db.orders!.find((candidate) => candidate.reference === reference);
   if (!storedOrder || !storedOrder.inventoryReserved) return;
   if (providerOrder.order_status === 'PAID') {
-    finalisePaidOrder(storedOrder, providerOrder);
+    await finalisePaidOrder(storedOrder, providerOrder);
   } else if (
     ['EXPIRED', 'TERMINATED', 'CANCELLED'].includes(providerOrder.order_status) &&
     Date.now() >= new Date(storedOrder.orderExpiryTime).getTime()
   ) {
     releaseOrderReservation(storedOrder, 'CANCELLED');
-    saveDb(db);
+    await saveDb(db);
   }
 }
 
@@ -625,7 +619,7 @@ app.post('/api/webhooks/cashfree', express.raw({ type: 'application/json' }), as
     return;
   }
   const eventHash = crypto.createHash('sha256').update(rawBody).digest('hex');
-  db = loadDb();
+  db = await loadDb();
   if (db.processedWebhookEvents!.includes(eventHash)) {
     res.json({ received: true, duplicate: true });
     return;
@@ -638,13 +632,13 @@ app.post('/api/webhooks/cashfree', express.raw({ type: 'application/json' }), as
       const verified = await cashfreeRequest<CashfreeOrderResponse>(
         `/orders/${encodeURIComponent(order.providerOrderId!)}`
       );
-      db = loadDb();
+      db = await loadDb();
       order = db.orders!.find((candidate) => candidate.providerOrderId === providerOrderId);
       if (!order) {
         res.status(404).json({ error: 'Order not found.' });
         return;
       }
-      finalisePaidOrder(order, verified);
+      await finalisePaidOrder(order, verified);
       order.paymentReference = String(event.data.payment.cf_payment_id || order.paymentReference || '');
     } catch (error) {
       console.error('Cashfree payment verification failed for an order.');
@@ -665,7 +659,7 @@ app.post('/api/webhooks/cashfree', express.raw({ type: 'application/json' }), as
   }
   db.processedWebhookEvents!.push(eventHash);
   if (db.processedWebhookEvents!.length > 5000) db.processedWebhookEvents!.splice(0, db.processedWebhookEvents!.length - 5000);
-  saveDb(db);
+  await saveDb(db);
   res.json({ received: true });
 });
 
@@ -697,7 +691,7 @@ function authMiddleware(req: Request, res: Response, next: NextFunction): void {
 }
 
 // --- Auth Routes ---
-app.post('/api/auth/login', (req: Request, res: Response) => {
+app.post('/api/auth/login', async (req: Request, res: Response) => {
   const { username, password } = req.body;
   if (!username || !password) {
     res.status(400).json({ error: 'Username and password are required' });
@@ -705,7 +699,7 @@ app.post('/api/auth/login', (req: Request, res: Response) => {
   }
 
   // Refresh db
-  db = loadDb();
+  db = await loadDb();
 
   const isUserMatch = username.trim().toLowerCase() === db.admin.username.toLowerCase();
   const isPassMatch = isUserMatch && bcrypt.compareSync(password, db.admin.passwordHash);
@@ -739,7 +733,7 @@ app.post('/api/auth/logout', (_req: Request, res: Response) => {
   res.json({ success: true, message: 'Logged out successfully' });
 });
 
-app.get('/api/auth/me', (req: Request, res: Response) => {
+app.get('/api/auth/me', async (req: Request, res: Response) => {
   const token = req.cookies?.auth_token || req.headers.authorization?.replace('Bearer ', '');
   if (!token) {
     res.status(401).json({ authenticated: false });
@@ -748,7 +742,7 @@ app.get('/api/auth/me', (req: Request, res: Response) => {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as { username: string };
-    db = loadDb();
+    db = await loadDb();
     if (decoded && decoded.username === db.admin.username) {
       res.json({
         authenticated: true,
@@ -766,8 +760,8 @@ app.get('/api/auth/me', (req: Request, res: Response) => {
 });
 
 // --- Public Endpoints ---
-app.get('/api/public/data', (_req: Request, res: Response) => {
-  db = loadDb();
+app.get('/api/public/data', async (_req: Request, res: Response) => {
+  db = await loadDb();
 
   // Filter only visible categories sorted by displayOrder
   const visibleCategories = db.categories
@@ -804,8 +798,8 @@ app.get('/api/public/data', (_req: Request, res: Response) => {
   });
 });
 
-app.get('/api/public/commerce', (_req: Request, res: Response) => {
-  db = loadDb();
+app.get('/api/public/commerce', async (_req: Request, res: Response) => {
+  db = await loadDb();
   const config = getCashfreeConfig();
   const shippingConfigured = Boolean(
     Number.isFinite(db.settings.shippingCharge) &&
@@ -879,7 +873,7 @@ app.post('/api/public/orders', async (req: Request, res: Response) => {
     return;
   }
 
-  db = loadDb();
+  db = await loadDb();
   const statusTokenHash = crypto.createHash('sha256').update(statusToken).digest('hex');
   const duplicate = db.orders!.find((order) => order.idempotencyKey === idempotencyKey);
   if (duplicate) {
@@ -914,11 +908,11 @@ app.post('/api/public/orders', async (req: Request, res: Response) => {
           provider.order_currency !== 'INR' ||
           Math.abs(provider.order_amount - duplicate.total) > 0.01
         ) throw new Error('Cashfree retry order does not match the saved order.');
-        db = loadDb();
+        db = await loadDb();
         const stored = db.orders!.find((order) => order.reference === duplicate.reference);
         if (!stored || !provider.payment_session_id) throw new Error('Cashfree did not return a payment session.');
         stored.paymentSessionId = provider.payment_session_id;
-        saveDb(db);
+        await saveDb(db);
         res.json({ order: publicOrder(stored), statusToken, paymentSessionId: provider.payment_session_id, mode: config.mode });
         return;
       } catch {
@@ -1101,7 +1095,7 @@ app.post('/api/public/orders', async (req: Request, res: Response) => {
     statusHistory: [{ status: 'New', at: now.toISOString() }],
   };
   db.orders!.push(order);
-  saveDb(db);
+  await saveDb(db);
 
   try {
     const provider = await cashfreeRequest<CashfreeOrderResponse>('/orders', {
@@ -1129,11 +1123,11 @@ app.post('/api/public/orders', async (req: Request, res: Response) => {
       provider.order_currency !== 'INR' ||
       Math.abs(provider.order_amount - total) > 0.01
     ) throw new Error('Cashfree order does not match the saved order.');
-    db = loadDb();
+    db = await loadDb();
     const stored = db.orders!.find((candidate) => candidate.reference === reference);
     if (!stored || !provider.payment_session_id) throw new Error('Cashfree did not return a payment session.');
     stored.paymentSessionId = provider.payment_session_id;
-    saveDb(db);
+    await saveDb(db);
     res.status(201).json({ order: publicOrder(stored), statusToken, paymentSessionId: provider.payment_session_id, mode: config.mode });
   } catch {
     console.error(`Cashfree checkout creation failed for ${reference}.`);
@@ -1148,7 +1142,7 @@ app.get('/api/public/orders/status/:token', async (req: Request, res: Response) 
     return;
   }
   const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
-  db = loadDb();
+  db = await loadDb();
   let order = db.orders!.find((candidate) => candidate.statusTokenHash === tokenHash);
   if (!order) {
     res.status(404).json({ error: 'Order not found.' });
@@ -1159,7 +1153,7 @@ app.get('/api/public/orders/status/:token', async (req: Request, res: Response) 
   } catch {
     console.error(`Cashfree status refresh failed for ${order.reference}.`);
   }
-  db = loadDb();
+  db = await loadDb();
   order = db.orders!.find((candidate) => candidate.statusTokenHash === tokenHash);
   if (!order) {
     res.status(404).json({ error: 'Order not found.' });
@@ -1169,8 +1163,8 @@ app.get('/api/public/orders/status/:token', async (req: Request, res: Response) 
 });
 
 // --- Admin Endpoints (Protected) ---
-app.get('/api/admin/data', authMiddleware, (_req: Request, res: Response) => {
-  db = loadDb();
+app.get('/api/admin/data', authMiddleware, async (_req: Request, res: Response) => {
+  db = await loadDb();
   // Sort categories by displayOrder
   const sortedCategories = [...db.categories].sort((a, b) => a.displayOrder - b.displayOrder);
   res.json({
@@ -1187,13 +1181,13 @@ app.get('/api/admin/data', authMiddleware, (_req: Request, res: Response) => {
   });
 });
 
-app.get('/api/admin/orders', authMiddleware, (_req: Request, res: Response) => {
-    db = loadDb();
+app.get('/api/admin/orders', authMiddleware, async (_req: Request, res: Response) => {
+    db = await loadDb();
     res.json({ orders: [...db.orders!].sort((a, b) => b.createdAt.localeCompare(a.createdAt)) });
   });
 
-app.put('/api/admin/orders/:reference/fulfilment', authMiddleware, (req: Request, res: Response) => {
-    db = loadDb();
+app.put('/api/admin/orders/:reference/fulfilment', authMiddleware, async (req: Request, res: Response) => {
+    db = await loadDb();
     const order = db.orders!.find((candidate) => candidate.reference === req.params.reference);
     const allowed: FulfilmentStatus[] = ['New', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
     const { status, courier, trackingNumber, note } = req.body as {
@@ -1223,13 +1217,13 @@ app.put('/api/admin/orders/:reference/fulfilment', authMiddleware, (req: Request
     order.trackingNumber = typeof trackingNumber === 'string' ? trackingNumber.trim().slice(0, 100) : order.trackingNumber;
     order.statusHistory.push({ status: status!, at: new Date().toISOString(), note: typeof note === 'string' ? note.trim().slice(0, 250) : undefined });
     order.updatedAt = new Date().toISOString();
-    saveDb(db);
+    await saveDb(db);
     res.json({ order });
 });
 
 // Product Mutations
-app.post('/api/admin/products', authMiddleware, (req: Request, res: Response) => {
-  db = loadDb();
+app.post('/api/admin/products', authMiddleware, async (req: Request, res: Response) => {
+  db = await loadDb();
   const { name, categoryId, description, price, isVisible, isHighlighted, image } = req.body;
 
   if (!name || !name.trim()) {
@@ -1295,13 +1289,13 @@ app.post('/api/admin/products', authMiddleware, (req: Request, res: Response) =>
   }
 
   db.products.push(newProduct);
-  saveDb(db);
+  await saveDb(db);
 
   res.status(201).json(newProduct);
 });
 
-app.put('/api/admin/products/:id', authMiddleware, (req: Request, res: Response) => {
-  db = loadDb();
+app.put('/api/admin/products/:id', authMiddleware, async (req: Request, res: Response) => {
+  db = await loadDb();
   const { id } = req.params;
   const index = db.products.findIndex((p) => p.id === id);
 
@@ -1438,13 +1432,13 @@ app.put('/api/admin/products/:id', authMiddleware, (req: Request, res: Response)
     }
   }
   db.products[index] = updated;
-  saveDb(db);
+  await saveDb(db);
 
   res.json(updated);
 });
 
-app.delete('/api/admin/products/:id', authMiddleware, (req: Request, res: Response) => {
-  db = loadDb();
+app.delete('/api/admin/products/:id', authMiddleware, async (req: Request, res: Response) => {
+  db = await loadDb();
   const { id } = req.params;
   if (!db.products.some((product) => product.id === id)) {
     res.status(404).json({ error: 'Product not found' });
@@ -1459,13 +1453,13 @@ app.delete('/api/admin/products/:id', authMiddleware, (req: Request, res: Respon
   }
   db.products = db.products.filter((p) => p.id !== id);
 
-  saveDb(db);
+  await saveDb(db);
   res.json({ success: true, message: 'Product deleted successfully' });
 });
 
 // Category Mutations
-app.post('/api/admin/categories', authMiddleware, (req: Request, res: Response) => {
-  db = loadDb();
+app.post('/api/admin/categories', authMiddleware, async (req: Request, res: Response) => {
+  db = await loadDb();
   const { name, image, isVisible, displayOrder } = req.body;
 
   if (!name || !name.trim()) {
@@ -1485,13 +1479,13 @@ app.post('/api/admin/categories', authMiddleware, (req: Request, res: Response) 
   };
 
   db.categories.push(newCategory);
-  saveDb(db);
+  await saveDb(db);
 
   res.status(201).json(newCategory);
 });
 
-app.put('/api/admin/categories/:id', authMiddleware, (req: Request, res: Response) => {
-  db = loadDb();
+app.put('/api/admin/categories/:id', authMiddleware, async (req: Request, res: Response) => {
+  db = await loadDb();
   const { id } = req.params;
   const index = db.categories.findIndex((c) => c.id === id);
 
@@ -1512,13 +1506,13 @@ app.put('/api/admin/categories/:id', authMiddleware, (req: Request, res: Respons
   };
 
   db.categories[index] = updated;
-  saveDb(db);
+  await saveDb(db);
 
   res.json(updated);
 });
 
-app.delete('/api/admin/categories/:id', authMiddleware, (req: Request, res: Response) => {
-  db = loadDb();
+app.delete('/api/admin/categories/:id', authMiddleware, async (req: Request, res: Response) => {
+  db = await loadDb();
   const { id } = req.params;
 
   // Requirement: Prevent deletion of a category containing products until those products are reassigned.
@@ -1538,13 +1532,13 @@ app.delete('/api/admin/categories/:id', authMiddleware, (req: Request, res: Resp
     return;
   }
 
-  saveDb(db);
+  await saveDb(db);
   res.json({ success: true, message: 'Category deleted successfully' });
 });
 
 // Category Reorder
-app.post('/api/admin/categories/reorder', authMiddleware, (req: Request, res: Response) => {
-  db = loadDb();
+app.post('/api/admin/categories/reorder', authMiddleware, async (req: Request, res: Response) => {
+  db = await loadDb();
   const { orderedIds } = req.body;
 
   if (!Array.isArray(orderedIds)) {
@@ -1559,7 +1553,7 @@ app.post('/api/admin/categories/reorder', authMiddleware, (req: Request, res: Re
     }
   });
 
-  saveDb(db);
+  await saveDb(db);
   res.json({
     success: true,
     categories: [...db.categories].sort((a, b) => a.displayOrder - b.displayOrder),
@@ -1567,8 +1561,8 @@ app.post('/api/admin/categories/reorder', authMiddleware, (req: Request, res: Re
 });
 
 // Settings Mutation
-app.put('/api/admin/settings', authMiddleware, (req: Request, res: Response) => {
-  db = loadDb();
+app.put('/api/admin/settings', authMiddleware, async (req: Request, res: Response) => {
+  db = await loadDb();
   const newSettings = req.body as Partial<DatabaseSchema['settings']> & Record<string, unknown>;
   if (Object.keys(newSettings).some((key) => /(cashfree|secret|private|api.?key|payment.*key)/i.test(key))) {
     res.status(400).json({ error: 'Payment credentials must be configured on the server, not in website settings.' });
@@ -1621,7 +1615,7 @@ app.put('/api/admin/settings', authMiddleware, (req: Request, res: Response) => 
       : db.settings.instagramUrl,
   };
 
-  saveDb(db);
+  await saveDb(db);
   res.json(safeWebsiteSettings());
 });
 
