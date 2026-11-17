@@ -1,0 +1,294 @@
+@import "tailwindcss";
+
+@theme {
+  --color-cream: #FFF8EE;
+  --color-pink-soft: #F6DCE3;
+  --color-gold: #B58A42;
+  --color-gold-light: #DFBE7A;
+  --color-gold-dark: #8C6627;
+  --color-wine: #682D42;
+  --color-wine-dark: #4F1E30;
+  --color-charcoal: #352D2F;
+  --font-serif: 'Cormorant Garamond', Georgia, serif;
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --container-public: 1664px;
+}
+
+@layer base {
+  body {
+    background-color: #FFF8EE;
+    color: #352D2F;
+    font-family: var(--font-sans);
+    overflow-x: clip;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-serif);
+  }
+}
+
+@keyframes heading-letter-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(0.45em);
+    filter: blur(0.35em);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.animated-heading__letter {
+  display: inline-block;
+
+}
+
+.animated-heading__space {
+  white-space: pre;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animated-heading__letter {
+    animation: none;
+  }
+}
+
+.hanging-decorations {
+  position: absolute;
+  z-index: 20;
+  inset: 0 0 auto;
+  height: 0;
+  pointer-events: none;
+}
+
+.hanging-decoration {
+  --lantern-size: 48px;
+  --string-length: 28px;
+  position: absolute;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: var(--lantern-size);
+  transform: rotate(0deg);
+  transform-origin: 50% 0;
+  will-change: transform;
+  pointer-events: none;
+}
+
+.hanging-decoration__string {
+  width: 1px;
+  height: var(--string-length);
+  flex: 0 0 auto;
+  background: linear-gradient(to bottom, #9b712c, #dfbe7a 65%, #b58a42);
+  box-shadow: 0 0 1px rgb(181 138 66 / 35%);
+}
+
+.hanging-decoration__lantern {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  pointer-events: auto;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.hanging-decoration--upper-left {
+  left: clamp(2px, 1.2vw, 18px);
+}
+
+.hanging-decoration--upper-right {
+  right: clamp(2px, 1.2vw, 18px);
+}
+
+.hanging-decoration--upper-right-inner {
+  right: clamp(28px, 5vw, 76px);
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .hanging-decoration--upper-right-inner {
+    display: flex;
+  }
+}
+
+@media (max-width: 767px) {
+  .hanging-decoration {
+    --lantern-size: 24px;
+    --string-length: 5px;
+  }
+
+  .hanging-decoration--upper-right {
+    --string-length: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hanging-decoration {
+    will-change: auto;
+    transform: rotate(0deg) !important;
+  }
+}
+
+/* Custom marquee animations moving LEFT TO RIGHT as specified */
+@keyframes marquee-ltr {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
+
+.animate-marquee-ltr {
+  animation: marquee-ltr 32s linear infinite;
+}
+
+.paused {
+  animation-play-state: paused !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee-ltr {
+    animation: none !important;
+  }
+}
+
+/* Shared Public Page Container: max 1664px, 40-48px padding on desktop, 24px on tablet, 16px on mobile */
+.container-public {
+  width: 100%;
+  max-width: 1664px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+@media (min-width: 640px) {
+  .container-public {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container-public {
+    padding-left: 40px;
+    padding-right: 40px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .container-public {
+    padding-left: 48px;
+    padding-right: 48px;
+  }
+}
+
+/* Completely remove side scroll bar across the entire website */
+html,
+body,
+#root,
+* {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+*::-webkit-scrollbar,
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+}
+
+/* Utility to ensure any scrollable element has no visible scrollbar */
+.scrollbar-none {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* Interaction polish uses the existing storefront palette and geometry. */
+.storefront :where(button, a, input, select, textarea):focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 3px;
+}
+.storefront :where(button:not(:disabled), a) {
+  -webkit-tap-highlight-color: rgb(181 138 66 / 18%);
+}
+.storefront button:not(:disabled) { cursor: pointer; }
+.storefront .animate-marquee-ltr:focus-within { animation-play-state: paused; }
+@keyframes collection-refresh {
+  from { opacity: .55; }
+  to { opacity: 1; }
+}
+@keyframes cart-feedback {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes cart-count {
+  0% { transform: scale(.8); }
+  60% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+.collection-results { animation: collection-refresh 220ms ease-out; }
+.cart-notice { animation: cart-feedback 220ms ease-out; }
+.cart-badge { animation: cart-count 260ms ease-out; }
+@media (prefers-reduced-motion: no-preference) {
+  .storefront button:not(:disabled) { transition: color 180ms, background-color 180ms, box-shadow 180ms, scale 140ms; }
+  .storefront button:not(:disabled):active { scale: .97; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .storefront *, .storefront *::before, .storefront *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .storefront .group:hover img { transform: none !important; }
+}
+
+/* Editorial storefront additions, using the established brand tokens. */
+.occasion-editorial { background: var(--color-wine); color: var(--color-cream); padding: 56px 0; }
+.occasion-editorial__grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: clamp(32px, 6vw, 96px); align-items: center; }
+.occasion-editorial__photo { position: relative; overflow: hidden; border-radius: 100px 100px 12px 12px; border: 1px solid var(--color-gold); aspect-ratio: 5/4; }
+.occasion-editorial__photo img { width: 100%; height: 100%; object-fit: cover; }
+.occasion-editorial__caption { position: absolute; inset: auto 0 0; padding: 36px 24px 20px; background: linear-gradient(transparent, rgb(53 45 47 / 85%)); font-family: var(--font-serif); font-size: 24px; }
+.shopping-guide { display: grid; grid-template-columns: .85fr 1.15fr; gap: 48px; padding-top: 80px; padding-bottom: 80px; align-items: center; }
+.shopping-guide__form { padding: 32px; border: 1px solid rgb(181 138 66 / 35%); border-radius: 20px; background: rgb(246 220 227 / 35%); }
+.guide-choice { min-height: 44px; display: inline-flex; align-items: center; gap: 6px; padding: 10px 16px; border-radius: 999px; border: 1px solid rgb(181 138 66 / 45%); background: var(--color-cream); color: var(--color-wine); font-size: 13px; }
+.guide-choice--selected { background: var(--color-wine); border-color: var(--color-wine); color: var(--color-cream); }
+.shopping-faq { position: relative; overflow: hidden; padding: 56px 0 72px; border-top: 1px solid rgb(181 138 66 / 25%); background: rgb(246 220 227 / 22%); }
+.shopping-faq__grid { display: grid; grid-template-columns: .85fr 1.15fr; gap: 48px; align-items: center; }
+.shopping-faq__item { border-bottom: 1px solid rgb(181 138 66 / 30%); }
+.faq-sparkle { animation: faq-float 5s ease-in-out infinite; }
+.faq-sparkle:nth-of-type(2n) { animation-duration: 6.5s; animation-delay: -2s; }
+.faq-sparkle:nth-of-type(3n) { animation-duration: 8s; animation-delay: -4s; }
+@keyframes faq-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+@media (prefers-reduced-motion: reduce) { .faq-sparkle { animation: none; } }
+.shopping-faq__item summary { min-height: 64px; padding: 18px 0; display: flex; align-items: center; justify-content: space-between; gap: 20px; cursor: pointer; color: var(--color-wine); font-size: 15px; font-weight: 600; list-style: none; }
+.shopping-faq__item summary::-webkit-details-marker { display: none; }
+.shopping-faq__item summary svg { flex-shrink: 0; transition: transform .2s; }
+.shopping-faq__item[open] summary svg { transform: rotate(180deg); }
+.shopping-faq__item p { padding: 0 30px 22px 0; font-size: 14px; line-height: 1.8; color: rgb(53 45 47 / 80%); }
+.storefront summary:focus-visible { outline: 2px solid var(--color-gold); outline-offset: 4px; }
+.skip-content { position: fixed; top: 8px; left: 8px; z-index: 100; transform: translateY(-150%); background: var(--color-wine); color: var(--color-cream); padding: 12px 20px; border-radius: 8px; }
+.skip-content:focus { transform: translateY(0); }
+@media (max-width: 767px) {
+  .occasion-editorial__grid, .shopping-guide, .shopping-faq__grid { grid-template-columns: 1fr; gap: 28px; }
+  .occasion-editorial { padding: 32px 0 40px; }
+  .occasion-editorial__photo { aspect-ratio: 4/3; border-radius: 64px 64px 12px 12px; }
+  .shopping-guide { padding-top: 44px; padding-bottom: 44px; }
+  .shopping-guide__form { padding: 22px 18px; }
+  .shopping-faq { padding: 40px 0; }
+}
