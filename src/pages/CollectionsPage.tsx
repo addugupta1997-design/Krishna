@@ -35,14 +35,26 @@ export function CollectionsPage({
     setActiveCategory(selectedCategoryName || 'All');
   }, [selectedCategoryName]);
 
-  // Standard filter buttons in exact order from approved design reference
+  // Pills come from the live category list (in display order) so newly added
+  // categories appear automatically. Known categories keep their approved short labels.
+  const shortLabels: Record<string, string> = {
+    'Wedding Essentials': 'Wedding',
+    'Bhagwan Ji Shringaar': 'Shringaar',
+    'Laces & Latkans': 'Laces & Latkans',
+    'Festive Décor': 'Festive',
+    'Festive Decor': 'Festive',
+    'Art & Craft': 'Art & Craft',
+  };
   const filterPills = [
     { label: 'All', query: 'All' },
-    { label: 'Wedding', query: 'Wedding' },
-    { label: 'Shringaar', query: 'Shringaar' },
-    { label: 'Laces & Latkans', query: 'Laces' },
-    { label: 'Festive', query: 'Festive' },
-    { label: 'Art & Craft', query: 'Art & Craft' },
+    ...categories
+      .filter((category) => category.isVisible !== false)
+      .slice()
+      .sort((a, b) => a.displayOrder - b.displayOrder)
+      .map((category) => ({
+        label: shortLabels[category.name] || category.name,
+        query: category.name,
+      })),
   ];
 
   // Combined filtering: category and search query
