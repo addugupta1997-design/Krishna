@@ -40,6 +40,7 @@ export function AuthDialog({ open, user, onClose, initialError }: AuthDialogProp
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [signupName, setSignupName] = useState('');
   const [nameInput, setNameInput] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -84,6 +85,11 @@ export function AuthDialog({ open, user, onClose, initialError }: AuthDialogProp
       setError('Password must be at least 8 characters.');
       return;
     }
+    const trimmedName = signupName.trim();
+    if (mode === 'signup' && trimmedName.length < 2) {
+      setError('Please enter your name.');
+      return;
+    }
     setBusy(true);
     setError('');
     setNotice('');
@@ -92,6 +98,7 @@ export function AuthDialog({ open, user, onClose, initialError }: AuthDialogProp
         const { data, error: signUpError } = await supabase.auth.signUp({
           email: trimmedEmail,
           password,
+          options: { data: { full_name: trimmedName } },
         });
         if (signUpError) {
           setError(friendlyError(signUpError.message));
@@ -102,6 +109,7 @@ export function AuthDialog({ open, user, onClose, initialError }: AuthDialogProp
           setMode('signin');
         } else {
           setPassword('');
+          setSignupName('');
           onClose();
         }
       } else {
@@ -150,6 +158,16 @@ export function AuthDialog({ open, user, onClose, initialError }: AuthDialogProp
       setBusy(false);
     }
     // On success the browser redirects to Google, so there is nothing to clean up here.
+  };
+
+  const handleSaveName = async () => {
+    const name = nameInput.trim() || null;
+    const ok = await save({ full_name: name });
+    if (ok && supabase) {
+      // Keep Supabase Auth's user metadata in sync so the dashboard shows a display name.
+      const { error } = await supabase.auth.updateUser({ data: { full_name: name } });
+      if (error) console.error('Could not update display name:', error);
+    }
   };
 
   const handleSignOut = async () => {
@@ -216,7 +234,7 @@ export function AuthDialog({ open, user, onClose, initialError }: AuthDialogProp
                 />
                 <button
                   type="button"
-                  onClick={() => save({ full_name: nameInput.trim() || null })}
+                  onClick={handleSaveName}
                   disabled={saving}
                   className="inline-flex min-h-11 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-[#B58A42]/70 px-3 text-xs font-semibold text-[#682D42] hover:bg-[#F6DCE3]/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#B58A42] disabled:opacity-60"
                 >
@@ -265,6 +283,23 @@ export function AuthDialog({ open, user, onClose, initialError }: AuthDialogProp
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-3.5" noValidate>
+            {mode === 'signup' && (
+              <div>
+                <label htmlFor="auth-signup-name" className="mb-1 block text-xs font-semibold text-[#682D42]">
+                  Your name
+                </label>
+                <input
+                  id="auth-signup-name"
+                  type="text"
+                  autoComplete="name"
+                  value={signupName}
+                  onChange={(event) => setSignupName(event.target.value)}
+                  placeholder="e.g. Aditya Gupta"
+                  className={inputClass}
+                  required
+                />
+              </div>
+            )}
             <div>
               <label htmlFor="auth-email" className="mb-1 block text-xs font-semibold text-[#682D42]">
                 Email
