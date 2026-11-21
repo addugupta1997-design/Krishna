@@ -48,7 +48,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
           className="inline-flex items-center gap-2 text-sm font-semibold text-[#682D42] underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#B58A42]"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back to the store
+          Back to the Home
         </button>
       }
     >
