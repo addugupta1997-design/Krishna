@@ -1652,6 +1652,7 @@ function isKnownClientRoute(pathname: string): boolean {
     pathname === '/our-story' ||
     pathname === '/visit-us' ||
     pathname === '/privacy-policy' ||
+    pathname === '/login' ||
     pathname === '/admin' ||
     pathname.startsWith('/admin/');
 }

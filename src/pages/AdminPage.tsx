@@ -32,6 +32,8 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { BrandLogo } from '../components/Ornaments';
+import { AuthStage } from '../components/AuthStage';
+import { useMascotMood } from '../components/ShyPeacock';
 import { AdminOrders } from '../components/AdminOrders';
 import type { Category, Product, ProductVariant, WebsiteSettings, ProductVideoItem } from '../types';
 import { formatPrice, getPriceDisplay } from '../utils/pricing';
@@ -79,6 +81,7 @@ export function AdminPage({
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState('');
   const [loginLoading, setLoginLoading] = useState(false);
+  const mascotMood = useMascotMood(password, showPassword);
 
   // Products state
   const [productSearch, setProductSearch] = useState('');
@@ -250,94 +253,83 @@ export function AdminPage({
   // If unauthenticated, render the Store Admin Login screen
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-[#FFF8EE] flex flex-col justify-center items-center px-4 py-12">
-        <div className="w-full max-w-md bg-[#FFF8EE] rounded-2xl border border-[#B58A42]/40 shadow-xl p-8 text-[#352D2F]">
-          <div className="flex flex-col items-center text-center mb-6">
-            <BrandLogo size={56} className="mb-3" />
-            <h1 className="font-serif text-2xl font-bold text-[#682D42]">
-              Krishna Tracer
-            </h1>
-            <span className="text-[10px] tracking-widest text-[#B58A42] font-semibold uppercase mt-0.5">
-              STORE ADMIN PANEL
-            </span>
-            <p className="text-xs text-[#352D2F]/70 mt-2">
-              Sign in to manage your products, categories and store settings.
-            </p>
+      <AuthStage
+        eyebrow="Krishna Tracer · Store admin"
+        title="Welcome back"
+        subtitle="Sign in to manage your products, categories and store settings."
+        mood={mascotMood}
+        footer={
+          <button
+            type="button"
+            onClick={onNavigateWebsite}
+            className="inline-flex items-center gap-2 text-sm font-semibold text-[#682D42] underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#B58A42]"
+          >
+            <ExternalLink className="h-4 w-4" />
+            Return to public website
+          </button>
+        }
+      >
+        {loginError && (
+          <div role="alert" className="mb-4 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-700">
+            <AlertCircle className="h-4 w-4 shrink-0" />
+            <span>{loginError}</span>
+          </div>
+        )}
+
+        <form onSubmit={handleLoginSubmit} className="space-y-4" autoComplete="off">
+          <div>
+            <label htmlFor="admin-username" className="mb-1 block text-xs font-semibold text-[#682D42]">
+              Username
+            </label>
+            <input
+              id="admin-username"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+              autoComplete="off"
+              className="w-full rounded-lg border border-[#B58A42]/50 bg-white px-3.5 py-2.5 text-sm text-[#352D2F] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#682D42]"
+              placeholder="Enter username"
+            />
           </div>
 
-          {loginError && (
-            <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>{loginError}</span>
-            </div>
-          )}
-
-          <form onSubmit={handleLoginSubmit} className="space-y-4" autoComplete="off">
-            <div>
-              <label className="block text-xs font-semibold text-[#682D42] mb-1">
-                Username
-              </label>
+          <div>
+            <label htmlFor="admin-password" className="mb-1 block text-xs font-semibold text-[#682D42]">
+              Password
+            </label>
+            <div className="relative">
               <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                id="admin-password"
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 required
-                autoComplete="off"
-                className="w-full px-3.5 py-2.5 rounded-lg border border-[#B58A42]/40 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#682D42]"
-                placeholder="Enter username"
+                autoComplete="new-password"
+                className="w-full rounded-lg border border-[#B58A42]/50 bg-white py-2.5 pl-3.5 pr-11 text-sm text-[#352D2F] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#682D42]"
+                placeholder="Enter password"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                aria-pressed={showPassword}
+                className="absolute inset-y-0 right-0 flex items-center pr-3 text-[#8C6627] hover:text-[#682D42] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#B58A42]"
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
             </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-[#682D42] mb-1">
-                Password
-              </label>
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  autoComplete="new-password"
-                  className="w-full pl-3.5 pr-10 py-2.5 rounded-lg border border-[#B58A42]/40 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#682D42]"
-                  placeholder="Enter password"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-[#352D2F]/60 hover:text-[#682D42] focus:outline-none"
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
-                >
-                  {showPassword ? (
-                    <EyeOff className="w-4 h-4" />
-                  ) : (
-                    <Eye className="w-4 h-4" />
-                  )}
-                </button>
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loginLoading}
-              className="w-full py-3 rounded-lg bg-[#682D42] text-[#FFF8EE] text-sm font-semibold hover:bg-[#4F1E30] transition-colors shadow-sm disabled:opacity-50 flex items-center justify-center gap-2"
-            >
-              <Lock className="w-4 h-4 text-[#DFBE7A]" />
-              <span>{loginLoading ? 'Signing In...' : 'Sign In'}</span>
-            </button>
-          </form>
-
-          <div className="mt-6 pt-5 border-t border-[#B58A42]/20 flex flex-col items-center gap-2">
-            <button
-              onClick={onNavigateWebsite}
-              className="text-xs text-[#B58A42] hover:text-[#682D42] hover:underline inline-flex items-center gap-1 font-medium"
-            >
-              <span>Return to Public Website</span>
-              <ExternalLink className="w-3 h-3" />
-            </button>
           </div>
-        </div>
-      </div>
+
+          <button
+            type="submit"
+            disabled={loginLoading}
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#682D42] py-3 text-sm font-semibold text-[#FFF8EE] shadow-sm transition-colors hover:bg-[#4F1E30] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#B58A42] disabled:opacity-50"
+          >
+            <Lock className="h-4 w-4 text-[#DFBE7A]" />
+            <span>{loginLoading ? 'Signing In...' : 'Sign In'}</span>
+          </button>
+        </form>
+      </AuthStage>
     );
   }
 

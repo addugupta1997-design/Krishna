@@ -126,7 +126,7 @@ export function Navbar({ currentPath, onNavigate, settings, cartQuantity }: Navb
         <div className="hidden md:flex items-center gap-3">
           <button
             type="button"
-            onClick={() => setAuthOpen(true)}
+            onClick={() => (user ? setAuthOpen(true) : onNavigate('/login'))}
             aria-label={user ? `Account, signed in as ${user.email}` : 'Sign in'}
             title={user ? user.email ?? 'Account' : 'Sign in'}
             className="relative inline-flex min-h-10 min-w-10 items-center justify-center rounded-full text-[#682D42] hover:bg-[#F6DCE3]/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#B58A42]"
@@ -220,7 +220,7 @@ export function Navbar({ currentPath, onNavigate, settings, cartQuantity }: Navb
           <div className="pt-3 border-t border-[#B58A42]/20 flex flex-col gap-3">
             <button
               type="button"
-              onClick={() => { setMobileMenuOpen(false); setAuthOpen(true); }}
+              onClick={() => { setMobileMenuOpen(false); if (user) setAuthOpen(true); else onNavigate('/login'); }}
               className="flex items-center justify-between w-full px-3 py-2.5 rounded-lg border border-[#B58A42]/50 text-base font-serif text-[#682D42] hover:bg-[#F6DCE3]/40"
             >
               <span className="inline-flex items-center gap-2.5">

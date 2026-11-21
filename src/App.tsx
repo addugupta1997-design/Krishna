@@ -19,6 +19,7 @@ import { CheckoutPage } from './pages/CheckoutPage';
 import { CartPage } from './pages/CartPage';
 import { OrderStatusPage } from './pages/OrderStatusPage';
 import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
+import { LoginPage } from './pages/LoginPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { DEFAULT_PRIVACY_POLICY } from './utils/privacyPolicy';
 import type { CartEntry, Category, Product, WebsiteSettings } from './types';
@@ -487,7 +488,8 @@ export default function App() {
     isOrderStatusRoute ||
     currentPath === '/our-story' ||
     currentPath === '/visit-us' ||
-    currentPath === '/privacy-policy';
+    currentPath === '/privacy-policy' ||
+    currentPath === '/login';
   const hangingDecorationPage = currentPath === '/'
     ? 'home'
     : currentPath === '/store'
@@ -524,6 +526,8 @@ export default function App() {
           onSaveSettings={handleSaveSettings}
           initialTab={adminInitialTab}
         />
+      ) : currentPath === '/login' ? (
+        <LoginPage onNavigate={navigate} />
       ) : (
         /* Public Customer-Facing Layout */
         <>
