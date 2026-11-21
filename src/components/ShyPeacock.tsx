@@ -12,7 +12,7 @@ export function useMascotMood(password: string, visible: boolean): MascotMood {
 export function mascotCaption(mood: MascotMood): string {
   if (mood === 'hiding') return 'Not peeking. Promise.';
   if (mood === 'peeking') return '…alright, just one eye.';
-  return 'Mor is minding the shop.';
+  return 'Mayur Symbolises the Elegance';
 }
 
 const FEATHER_ANGLES = [-50, -34, -17, 0, 17, 34, 50];
