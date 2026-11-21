@@ -15,7 +15,7 @@ export function mascotCaption(mood: MascotMood): string {
   return 'Mor is minding the shop.';
 }
 
-const FEATHER_ANGLES = [-72, -48, -24, 0, 24, 48, 72];
+const FEATHER_ANGLES = [-50, -34, -17, 0, 17, 34, 50];
 
 export function ShyPeacock({ mood }: { mood: MascotMood }) {
   const reduceMotion = useReducedMotion();
